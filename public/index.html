@@ -4,15 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0d11" />
-  <title>TI2026 上海观赛指南 v1.3.1</title>
+  <title>TI2026 上海观赛指南 v1.3.2</title>
   <meta name="description" content="The International 2026 上海观赛指南：中国队优先、每场独立倒计时、本地战队图片缓存、瑞士轮、淘汰赛、完整赛程、Match ID/BP/KDA 与中文直播入口。" />
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="stylesheet" href="/patch-v131.css" />
 </head>
 <body>
   <div class="bg-grid"></div>
   <header class="topbar">
-    <div class="brand"><span class="aegis">TI</span><span>2026 上海观赛指南</span><em>v1.3.1</em></div>
+    <div class="brand"><span class="aegis">TI</span><span>2026 上海观赛指南</span><em>v1.3.2</em></div>
     <div class="top-actions">
       <span class="source-badge" id="sourceBadge">数据加载中</span>
       <button id="focusBtn" class="ghost-btn">观赛模式</button>
@@ -23,8 +22,8 @@
   <nav class="section-nav" aria-label="页面导航">
     <div class="section-nav-inner">
       <a href="#top">首页</a>
-      <a class="nav-cn" href="#chinaSection">🇨🇳 中国战队赛程</a>
       <a href="#todaySection">今日赛程</a>
+      <a class="nav-cn" href="#chinaSection">🇨🇳 中国战队赛程</a>
       <a href="#swissSection">瑞士轮</a>
       <a href="#bracketSection">主赛事</a>
       <a href="#scheduleSection">完整赛程</a>
@@ -39,7 +38,7 @@
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">THE INTERNATIONAL 2026 · SHANGHAI</p>
-        <h1>先看中国队，<br><span>再看今天所有比赛。</span></h1>
+        <h1>每一场比赛，<br><span>都知道还有多久。</span></h1>
         <p class="hero-desc">北京时间统一展示。每场比赛都有独立秒级倒计时；战队图片已缓存到项目本地；比赛开始后可继续进入详情页查看 Match ID、BP/Pick Ban、KDA、GPM/XPM 等逐局数据。</p>
         <div class="hero-meta"><span>📍 上海</span><span>🗓 8月13日—23日</span><span>🇨🇳 XG · TR · VG</span><span>💾 战队图本地缓存</span></div>
       </div>
@@ -51,20 +50,21 @@
       </div>
     </section>
 
-    <section class="section china-focus" id="chinaSection">
-      <div class="section-heading">
-        <div><span class="kicker">中国队</span><h2>中国战队赛程</h2><p class="section-desc">Xtreme Gaming · Team Resilience · Vici Gaming</p></div>
-        <span class="cn-tag">🇨🇳 中国队优先</span>
-      </div>
-      <div id="chinaMatches" class="match-grid"></div>
-    </section>
-
     <section class="section" id="todaySection">
       <div class="section-heading">
         <div><span class="kicker">WATCH TODAY</span><h2>今日赛程</h2><p class="section-desc">全部场次均显示独立倒计时</p></div>
         <div class="date-chip" id="todayChip"></div>
       </div>
       <div id="todayMatches" class="match-grid"></div>
+    </section>
+
+
+    <section class="section china-focus" id="chinaSection">
+      <div class="section-heading">
+        <div><span class="kicker">中国队</span><h2>中国战队赛程</h2><p class="section-desc">Xtreme Gaming · Team Resilience · Vici Gaming</p></div>
+        <span class="cn-tag">🇨🇳 中国队优先</span>
+      </div>
+      <div id="chinaMatches" class="match-grid"></div>
     </section>
 
     <section class="section two-col" id="swissSection">
@@ -138,8 +138,7 @@
     <button data-jump="chinaSection">🇨🇳 中国队</button><button data-jump="todaySection">今日</button><button data-jump="scheduleSection">赛程</button><button id="mobileFocusBtn">观赛模式</button>
   </div>
 
-  <footer>TI2026 Viewing Guide v1.3.1 · 战队图片已本地缓存 · Liquipedia 数据使用时遵循 CC BY-SA 3.0 并保留归属说明。</footer>
+  <footer>TI2026 Viewing Guide v1.3.2 · 战队图片已本地缓存 · Liquipedia 数据使用时遵循 CC BY-SA 3.0 并保留归属说明。</footer>
   <script src="/app.js"></script>
-  <script src="/patch-v131.js"></script>
 </body>
 </html>

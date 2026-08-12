@@ -350,7 +350,7 @@
     {
       "name": "Xtreme Gaming",
       "short": "XG",
-      "badge": "🇨🇳 CN",
+      "badge": "cn",
       "region": "中国",
       "qualification": "TI2026 直接邀请",
       "summary": "本届中国区关注度最高的阵容之一，核心框架经验丰富，Ame 负责后期收尾，NothingToSay 提供中路节奏，Xxs、fy、xNova 组成高经验的三四五号位体系。",
@@ -391,7 +391,7 @@
     {
       "name": "Team Resilience",
       "short": "TR",
-      "badge": "🇨🇳 CN",
+      "badge": "cn",
       "region": "中国",
       "qualification": "中国区预选第一出线",
       "summary": "2026 年组建后迅速完成 TI 突围的中国队，阵容由多名有国际赛经验的选手组成。整体更强调纪律性、地图联动与稳定执行。",
@@ -432,7 +432,7 @@
     {
       "name": "Vici Gaming",
       "short": "VG",
-      "badge": "🇨🇳 CN",
+      "badge": "cn",
       "region": "中国",
       "qualification": "中国区预选第二出线",
       "summary": "老牌中国俱乐部重返 TI 舞台。当前阵容以 shiro、Xm、Bach 三核为骨架，XinQ 与 y` 提供高经验辅助体系。",
@@ -472,26 +472,28 @@
     }
   ],
   "teamAssets": {
-    "Team Falcons": "/assets/teams/team-falcons.webp",
-    "Aurora Gaming": "/assets/teams/aurora-gaming.webp",
-    "BoomBoys": "/assets/teams/boomboys.webp",
-    "Team Liquid": "/assets/teams/team-liquid.webp",
-    "Iron Wing": "/assets/teams/iron-wing.webp",
-    "Xtreme Gaming": "/assets/teams/xtreme-gaming.webp",
-    "Team Yandex": "/assets/teams/team-yandex.webp",
-    "Team Resilience": "/assets/teams/team-resilience.webp",
-    "Vici Gaming": "/assets/teams/vici-gaming.webp",
-    "LGD Gaming": "/assets/teams/lgd-gaming.webp",
-    "OG": "/assets/teams/og.webp",
-    "GamerLegion": "/assets/teams/gamerlegion.webp",
-    "Team Spirit": "/assets/teams/team-spirit.webp",
-    "Team VISION": "/assets/teams/team-vision.webp",
-    "HULIGANI": "/assets/teams/huligani.webp",
-    "Nigma Galaxy": "/assets/teams/nigma-galaxy.webp"
+    "Team Falcons": "/assets/teams-normal/team-falcons.png",
+    "Aurora Gaming": "/assets/teams-normal/aurora-gaming.png",
+    "BoomBoys": "/assets/teams-normal/boomboys.png",
+    "Team Liquid": "/assets/teams-normal/team-liquid.png",
+    "Iron Wing": "/assets/teams-normal/iron-wing.png",
+    "Xtreme Gaming": "/assets/teams-normal/xtreme-gaming.png",
+    "Team Yandex": "/assets/teams-normal/team-yandex.png",
+    "Team Resilience": "/assets/teams-normal/team-resilience.png",
+    "Vici Gaming": "/assets/teams-normal/vici-gaming.png",
+    "LGD Gaming": "/assets/teams-normal/lgd-gaming.png",
+    "OG": "/assets/teams-normal/og.png",
+    "GamerLegion": "/assets/teams-normal/gamerlegion.png",
+    "Team Spirit": "/assets/teams-normal/team-spirit.png",
+    "Team VISION": "/assets/teams-normal/team-vision.png",
+    "HULIGANI": "/assets/teams-normal/huligani.png",
+    "Nigma Galaxy": "/assets/teams-normal/nigma-galaxy.png"
   },
   "teamAssetMeta": {
     "localCache": true,
-    "sourceNote": "v1.3 内置本地战队图缓存，默认不依赖外部图片站。Iron Wing 图源沿用其 TI2026 更名前阵容/1w Team 视觉素材，后续可直接替换同名文件。",
-    "directory": "/assets/teams/"
+    "sourceNote": "原色战队 Logo 由 scripts/refresh-team-logos.js 拉取并缓存到项目本地；页面运行时不直接请求外部 Logo。",
+    "directory": "/assets/teams-normal/",
+    "source": "OpenDota team logo_url",
+    "refreshedAt": "2026-08-12T14:24:27.359Z"
   }
 }

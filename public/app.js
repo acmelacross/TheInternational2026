@@ -24,7 +24,7 @@ function normalizeName(name) { return String(name || '').trim().toLowerCase(); }
 function canonicalName(name) { return TEAM_ALIASES[normalizeName(name)] || String(name || ''); }
 function isChinaTeam(name) { return CHINA.has(normalizeName(canonicalName(name))); }
 function isChinaMatch(m) { return (m.teams || []).some(t => isChinaTeam(t?.name)); }
-function cnBadge() { return '<span class="cn-badge">🇨🇳 CN</span>'; }
+function cnBadge() { return '<span class="cn-badge">cn</span>'; }
 function statusText(s) { return ({ live: '进行中', finished: '已结束', upcoming: '未开始', tbd: '待定' })[s] || s || '未开始'; }
 function scoreText(t) { return t?.score == null ? '–' : escapeHtml(t.score); }
 function initials(name) { const n = String(name || '').replace(/^Team\s+/i, '').trim(); return n.split(/\s+/).map(x => x[0]).join('').slice(0, 3).toUpperCase() || 'TI'; }
@@ -52,7 +52,7 @@ function ratingFor(m) {
   let score = 3.5, reason = '瑞士轮常规场';
   const st = String(m.stage || '').toLowerCase();
   if (m.status === 'live') { score = 5; reason = '正在进行'; }
-  if (isChinaMatch(m)) { score = 5; reason = 'CN 战队重点场'; }
+  if (isChinaMatch(m)) { score = 5; reason = '中国队重点场'; }
   if (/生死|淘汰|elimination|lower|upper|main event/.test(st)) { score = Math.max(score, 4.5); if (!isChinaMatch(m)) reason = '晋级/淘汰关键场'; }
   if (/grand|总决赛/.test(st)) { score = 5; reason = '总决赛'; }
   return { score, reason };
@@ -114,7 +114,7 @@ function matchCard(m) {
   const link = m.streamUrl ? `<a class="watch-link" target="_blank" rel="noopener" href="${escapeHtml(m.streamUrl)}">直播 ↗</a>` : '';
   const reminder = m.status === 'upcoming' ? `<button class="mini-btn" data-remind="${escapeHtml(m.id)}">⏰ 提醒</button>` : '';
   return `<article class="match-card ${cn ? 'cn-match' : ''}">
-    ${cn ? '<div class="cn-corner">🇨🇳 CN FOCUS</div>' : ''}
+    ${cn ? '<div class="cn-corner">中国队</div>' : ''}
     <div class="match-top"><div><span class="match-time">${fmtTime.format(new Date(m.startsAt))}</span> <span class="stream-pill">${m.stream ? `${escapeHtml(m.stream)}流 · ` : ''}BO${m.bestOf || 3}</span><span class="rating" title="${escapeHtml(rec.reason)}"><b>${rec.score}</b> ${starText(rec.score)}</span></div><span class="status ${escapeHtml(m.status)}">${statusText(m.status)}</span></div>
     ${countdownBox(m)}
     <div class="match-teams">
@@ -143,13 +143,7 @@ function renderChina() {
   bindReminderButtons();
 }
 function renderChinaProfiles() {
-  const profiles = state.data.chinaTeamProfiles || [];
-  $('#chinaProfiles').innerHTML = profiles.map(t => `<article class="cn-profile">
-    <div class="cn-profile-head"><div class="cn-profile-title">${teamLogoHtml(t.name, 'profile-logo')}<div><span class="cn-badge large">🇨🇳 CN</span><h3>${escapeHtml(t.name)}</h3><p>${escapeHtml(t.qualification || '')}</p></div></div><strong>${escapeHtml(t.short || initials(t.name))}</strong></div>
-    <p class="cn-summary">${escapeHtml(t.summary || '')}</p>
-    <div class="player-grid">${(t.players || []).map(p => `<div class="player-card"><div class="player-avatar">${escapeHtml(String(p.id || '?').slice(0, 2).toUpperCase())}</div><div><b>${escapeHtml(p.id)}</b><span>${escapeHtml(p.role)}</span><p>${escapeHtml(p.intro || '')}</p></div></div>`).join('')}</div>
-    ${t.coach ? `<div class="coach-line"><span>教练</span><b>${escapeHtml(t.coach.id)}</b><em>${escapeHtml(t.coach.intro || '')}</em></div>` : ''}
-  </article>`).join('') || '<div class="empty">中国战队资料等待更新</div>';
+  $('#chinaProfiles').innerHTML = '<div class="empty waiting-panel">中国战队资料等待更新</div>';
 }
 function renderStandings() {
   const rows = state.data.standings || [];
@@ -192,7 +186,7 @@ function scheduleRow(m) {
 function renderTimeline() { $('#timeline').innerHTML = (state.data.timeline || []).map(x => `<div class="timeline-item"><div class="timeline-date">${escapeHtml(x.date.slice(5).replace('-', ' / '))}</div><div class="timeline-title">${escapeHtml(x.title)}</div><div class="timeline-detail">${escapeHtml(x.detail)}</div></div>`).join(''); }
 function renderTeams() {
   const ts = state.data.teams || []; $('#teamCount').textContent = `${ts.length} 支`;
-  $('#teams').innerHTML = ts.map(n => `<div class="team-card ${isChinaTeam(n) ? 'cn-team-card' : ''}">${teamLogoHtml(n, 'team-card-logo')}<div class="team-card-copy"><span>${isChinaTeam(n) ? cnBadge() : ''}${escapeHtml(n)}</span><small>${isChinaTeam(n) ? '中国战队 · CN FOCUS' : 'TI2026 参赛战队'}</small></div></div>`).join('');
+  $('#teams').innerHTML = ts.map(n => `<div class="team-card ${isChinaTeam(n) ? 'cn-team-card' : ''}">${teamLogoHtml(n, 'team-card-logo')}<div class="team-card-copy"><span>${isChinaTeam(n) ? cnBadge() : ''}${escapeHtml(n)}</span><small>${isChinaTeam(n) ? '中国战队' : 'TI2026 参赛战队'}</small></div></div>`).join('');
 }
 
 function nextUpcoming() {
