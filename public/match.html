@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0d11" />
+  <title>TI2026 比赛详情</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="detail-page">
+  <div class="bg-grid"></div>
+  <header class="topbar">
+    <div class="brand"><a class="back-link" href="/">←</a><span class="aegis">TI</span><span>比赛详情</span><em>v1.3</em></div>
+    <div class="top-actions"><a class="ghost-btn detail-home" href="/">返回观赛指南</a></div>
+  </header>
+  <main class="shell detail-shell">
+    <section id="seriesHero" class="detail-hero"><div class="empty">正在读取比赛...</div></section>
+    <section class="section detail-section">
+      <div class="section-heading"><div><span class="kicker">GAME DATA</span><h2>逐局 Match ID · BP · KDA</h2></div><span id="detailSource" class="muted small">读取中</span></div>
+      <div id="gameDetails" class="game-details"><div class="empty">正在读取逐局数据...</div></div>
+    </section>
+    <section class="detail-note">
+      <b>数据说明</b>
+      <p>系列赛赛程/逐局 Match ID 优先由 Liquipedia LPDB v3 提供；每个 Game 的 Pick/Ban、KDA、GPM/XPM、补刀和装备通过 Liquipedia Dota2DB 接口读取。Match ID 尚未发布时本页会保留并自动等待数据。</p>
+    </section>
+  </main>
+  <script src="/match.js"></script>
+</body>
+</html>

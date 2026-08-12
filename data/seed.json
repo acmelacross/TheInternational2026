@@ -1,0 +1,497 @@
+{
+  "event": {
+    "name": "The International 2026",
+    "shortName": "TI2026 / TI15",
+    "city": "上海",
+    "country": "中国",
+    "timezone": "Asia/Shanghai",
+    "groupStage": "2026-08-13 至 2026-08-16",
+    "mainEvent": "2026-08-20 至 2026-08-23",
+    "venue": "浦发银行东方体育中心",
+    "format": "16 队瑞士轮；4 胜晋级、4 负淘汰；8 队进入双败主赛事；总决赛 BO5"
+  },
+  "teams": [
+    "Team Falcons",
+    "LGD Gaming",
+    "Iron Wing",
+    "Nigma Galaxy",
+    "BoomBoys",
+    "OG",
+    "Team VISION",
+    "Team Resilience",
+    "Team Spirit",
+    "Xtreme Gaming",
+    "Team Liquid",
+    "Vici Gaming",
+    "Aurora Gaming",
+    "GamerLegion",
+    "Team Yandex",
+    "HULIGANI"
+  ],
+  "matches": [
+    {
+      "id": "seed-r1-a1",
+      "startsAt": "2026-08-13T10:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "A",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Falcons",
+          "score": null
+        },
+        {
+          "name": "LGD Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r1-b1",
+      "startsAt": "2026-08-13T10:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "B",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Iron Wing",
+          "score": null
+        },
+        {
+          "name": "Nigma Galaxy",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r1-c1",
+      "startsAt": "2026-08-13T10:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "C",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "BoomBoys",
+          "score": null
+        },
+        {
+          "name": "OG",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r1-d1",
+      "startsAt": "2026-08-13T10:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "D",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team VISION",
+          "score": null
+        },
+        {
+          "name": "Team Resilience",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r1-a2",
+      "startsAt": "2026-08-13T13:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "A",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Spirit",
+          "score": null
+        },
+        {
+          "name": "Xtreme Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r1-b2",
+      "startsAt": "2026-08-13T13:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "B",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Liquid",
+          "score": null
+        },
+        {
+          "name": "Vici Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r1-c2",
+      "startsAt": "2026-08-13T13:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "C",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Aurora Gaming",
+          "score": null
+        },
+        {
+          "name": "GamerLegion",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r1-d2",
+      "startsAt": "2026-08-13T13:00:00+08:00",
+      "stage": "瑞士轮 · 第1轮",
+      "stream": "D",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Yandex",
+          "score": null
+        },
+        {
+          "name": "HULIGANI",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r2-a",
+      "startsAt": "2026-08-13T16:00:00+08:00",
+      "stage": "瑞士轮 · 后续对阵",
+      "stream": "A",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（1-0）",
+          "score": null
+        },
+        {
+          "name": "待定（1-0）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r2-b",
+      "startsAt": "2026-08-13T16:00:00+08:00",
+      "stage": "瑞士轮 · 后续对阵",
+      "stream": "B",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（1-0）",
+          "score": null
+        },
+        {
+          "name": "待定（1-0）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r2-c",
+      "startsAt": "2026-08-13T16:00:00+08:00",
+      "stage": "瑞士轮 · 后续对阵",
+      "stream": "C",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（0-1）",
+          "score": null
+        },
+        {
+          "name": "待定（0-1）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "seed"
+    },
+    {
+      "id": "seed-r2-d",
+      "startsAt": "2026-08-13T16:00:00+08:00",
+      "stage": "瑞士轮 · 后续对阵",
+      "stream": "D",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（0-1）",
+          "score": null
+        },
+        {
+          "name": "待定（0-1）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "seed"
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2026-08-13",
+      "title": "瑞士轮 Day 1",
+      "detail": "首轮已公布；后续对阵根据战绩动态生成"
+    },
+    {
+      "date": "2026-08-14",
+      "title": "瑞士轮 Day 2",
+      "detail": "同战绩队伍继续匹配，全部 BO3"
+    },
+    {
+      "date": "2026-08-15",
+      "title": "瑞士轮 Day 3",
+      "detail": "产生部分直接晋级与淘汰队伍"
+    },
+    {
+      "date": "2026-08-16",
+      "title": "生死轮",
+      "detail": "10 支剩余队伍进行 5 场晋级生死 BO3"
+    },
+    {
+      "date": "2026-08-17",
+      "title": "休赛日",
+      "detail": "无比赛"
+    },
+    {
+      "date": "2026-08-18",
+      "title": "休赛日",
+      "detail": "无比赛"
+    },
+    {
+      "date": "2026-08-19",
+      "title": "休赛日",
+      "detail": "无比赛"
+    },
+    {
+      "date": "2026-08-20",
+      "title": "主赛事 Day 1",
+      "detail": "8 强双败淘汰赛"
+    },
+    {
+      "date": "2026-08-21",
+      "title": "主赛事 Day 2",
+      "detail": "胜者组 / 败者组继续"
+    },
+    {
+      "date": "2026-08-22",
+      "title": "主赛事 Day 3",
+      "detail": "淘汰赛后段"
+    },
+    {
+      "date": "2026-08-23",
+      "title": "决赛日",
+      "detail": "败者组决赛 + 总决赛 BO5"
+    }
+  ],
+  "chinaTeams": [
+    "Xtreme Gaming",
+    "Team Resilience",
+    "Vici Gaming"
+  ],
+  "streams": [
+    {
+      "name": "B站 · DOTA2赛事主直播",
+      "url": "https://live.bilibili.com/13",
+      "type": "中文",
+      "note": "TI2026 官方赛事直播入口"
+    },
+    {
+      "name": "B站 · TI2026 多路直播",
+      "url": "https://live.bilibili.com/46936",
+      "type": "中文",
+      "note": "小组赛多路赛事入口"
+    },
+    {
+      "name": "B站 · 14号直播间",
+      "url": "https://live.bilibili.com/46937",
+      "type": "中文",
+      "note": "TI2026 分流入口"
+    },
+    {
+      "name": "DOTA2 国服 · TI2026专题",
+      "url": "https://www.dota2.com.cn/international/2026",
+      "type": "官方",
+      "note": "赛程、直播与赛事专题"
+    }
+  ],
+  "chinaTeamProfiles": [
+    {
+      "name": "Xtreme Gaming",
+      "short": "XG",
+      "badge": "🇨🇳 CN",
+      "region": "中国",
+      "qualification": "TI2026 直接邀请",
+      "summary": "本届中国区关注度最高的阵容之一，核心框架经验丰富，Ame 负责后期收尾，NothingToSay 提供中路节奏，Xxs、fy、xNova 组成高经验的三四五号位体系。",
+      "players": [
+        {
+          "id": "Ame",
+          "role": "1号位 · Carry",
+          "intro": "队伍后期核心，擅长资源转化、团战收割与高压关键局处理。"
+        },
+        {
+          "id": "NothingToSay",
+          "role": "2号位 · Mid",
+          "intro": "中路节奏核心，承担前中期发起与法核输出，是阵容提速的重要一环。"
+        },
+        {
+          "id": "Xxs",
+          "role": "3号位 · Offlane",
+          "intro": "经验型三号位，承担先手、前排和团战空间制造。"
+        },
+        {
+          "id": "fy",
+          "role": "4号位 · Support",
+          "intro": "老牌四号位，游走、开团与关键技能释放是主要看点。"
+        },
+        {
+          "id": "xNova",
+          "role": "5号位 · Hard Support",
+          "intro": "五号位与团队辅助核心，负责视野、保护和团战执行。"
+        }
+      ],
+      "coach": {
+        "id": "xiao8",
+        "role": "教练",
+        "intro": "负责 BP、赛前准备与系列赛调整。"
+      },
+      "sourceNote": "Valve/完美世界 2026-05-26 公布的 TI2026 直邀阵容。"
+    },
+    {
+      "name": "Team Resilience",
+      "short": "TR",
+      "badge": "🇨🇳 CN",
+      "region": "中国",
+      "qualification": "中国区预选第一出线",
+      "summary": "2026 年组建后迅速完成 TI 突围的中国队，阵容由多名有国际赛经验的选手组成。整体更强调纪律性、地图联动与稳定执行。",
+      "players": [
+        {
+          "id": "Erika",
+          "role": "1号位 · Carry",
+          "intro": "资源型一号位，偏稳定发育和中后期接管比赛。"
+        },
+        {
+          "id": "Echo",
+          "role": "2号位 · Mid",
+          "intro": "中路节奏位，负责前中期提速与带动边线。"
+        },
+        {
+          "id": "niu",
+          "role": "3号位 · Offlane",
+          "intro": "前排与团战发动机，承担开团、控制和空间制造。"
+        },
+        {
+          "id": "plAnet",
+          "role": "4号位 · Support",
+          "intro": "高机动四号位，擅长游走、支援和串联地图节奏。"
+        },
+        {
+          "id": "zzq",
+          "role": "5号位 · Hard Support",
+          "intro": "团队五号位，重点负责视野、保护和阵地战执行。"
+        }
+      ],
+      "coach": {
+        "id": "Super",
+        "role": "教练",
+        "intro": "拥有丰富 TI 舞台经验，负责阵容准备与临场调整。"
+      },
+      "sourceNote": "中国区预选出线阵容；GosuGamers 2026-06 报道列出 Erika、Echo、niu、plAnet、zzq，Super 任教练。"
+    },
+    {
+      "name": "Vici Gaming",
+      "short": "VG",
+      "badge": "🇨🇳 CN",
+      "region": "中国",
+      "qualification": "中国区预选第二出线",
+      "summary": "老牌中国俱乐部重返 TI 舞台。当前阵容以 shiro、Xm、Bach 三核为骨架，XinQ 与 y` 提供高经验辅助体系。",
+      "players": [
+        {
+          "id": "shiro",
+          "role": "1号位 · Carry",
+          "intro": "一号位核心，承担主要经济转化与后期输出。"
+        },
+        {
+          "id": "Xm",
+          "role": "2号位 · Mid",
+          "intro": "经验丰富的中单，负责节奏衔接与中后期输出。"
+        },
+        {
+          "id": "Bach",
+          "role": "3号位 · Offlane",
+          "intro": "三号位核心，承担开团、承伤和团战控制。"
+        },
+        {
+          "id": "XinQ",
+          "role": "4号位 · Support",
+          "intro": "高影响力四号位，擅长游走、先手和复杂团战操作。"
+        },
+        {
+          "id": "y`",
+          "role": "5号位 · Hard Support",
+          "intro": "五号位与队伍指挥型辅助，负责视野、保护及团队执行。"
+        }
+      ],
+      "coach": {
+        "id": "Yao",
+        "role": "教练",
+        "intro": "负责 BP、赛前准备和系列赛调整。"
+      },
+      "sourceNote": "TI2026 中国区预选出线阵容；近期赛事资料列为 shiro、Xm、Bach、XinQ、y`。"
+    }
+  ],
+  "teamAssets": {
+    "Team Falcons": "/assets/teams/team-falcons.webp",
+    "Aurora Gaming": "/assets/teams/aurora-gaming.webp",
+    "BoomBoys": "/assets/teams/boomboys.webp",
+    "Team Liquid": "/assets/teams/team-liquid.webp",
+    "Iron Wing": "/assets/teams/iron-wing.webp",
+    "Xtreme Gaming": "/assets/teams/xtreme-gaming.webp",
+    "Team Yandex": "/assets/teams/team-yandex.webp",
+    "Team Resilience": "/assets/teams/team-resilience.webp",
+    "Vici Gaming": "/assets/teams/vici-gaming.webp",
+    "LGD Gaming": "/assets/teams/lgd-gaming.webp",
+    "OG": "/assets/teams/og.webp",
+    "GamerLegion": "/assets/teams/gamerlegion.webp",
+    "Team Spirit": "/assets/teams/team-spirit.webp",
+    "Team VISION": "/assets/teams/team-vision.webp",
+    "HULIGANI": "/assets/teams/huligani.webp",
+    "Nigma Galaxy": "/assets/teams/nigma-galaxy.webp"
+  },
+  "teamAssetMeta": {
+    "localCache": true,
+    "sourceNote": "v1.3 内置本地战队图缓存，默认不依赖外部图片站。Iron Wing 图源沿用其 TI2026 更名前阵容/1w Team 视觉素材，后续可直接替换同名文件。",
+    "directory": "/assets/teams/"
+  }
+}

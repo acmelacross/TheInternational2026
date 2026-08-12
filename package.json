@@ -1,0 +1,15 @@
+{
+  "name": "ti2026-viewing-guide",
+  "version": "1.3.0",
+  "private": true,
+  "description": "TI2026 Dota 2 观赛指南 v1.3：本地战队图缓存 + 吸顶导航 + 每场倒计时 + Match ID/BP/KDA + 中国战队 CN 高亮 + Linux 部署",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

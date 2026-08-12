@@ -1,0 +1,11 @@
+services:
+  ti2026-guide:
+    build: .
+    container_name: ti2026-guide
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:17826:17826"
+    env_file:
+      - .env
+    volumes:
+      - ./cache:/app/cache

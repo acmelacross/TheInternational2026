@@ -1,0 +1,24 @@
+[Unit]
+Description=TI2026 Shanghai Viewing Guide
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ti2026
+Group=ti2026
+WorkingDirectory=/opt/ti2026-guide
+Environment=NODE_ENV=production
+EnvironmentFile=-/opt/ti2026-guide/.env
+ExecStart=__NODE_BIN__ /opt/ti2026-guide/server.js
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/ti2026-guide/cache
+
+[Install]
+WantedBy=multi-user.target

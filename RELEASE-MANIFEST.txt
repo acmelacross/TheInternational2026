@@ -1,0 +1,41 @@
+TI2026 Viewing Guide v1.3.0
+Build date: 2026-08-12
+
+Validation:
+- node -c server.js: PASS
+- node -c public/app.js: PASS
+- node -c public/match.js: PASS
+- node tests.js: PASS
+- Linux shell syntax: PASS
+- local integration /api/health: PASS
+- local integration /api/ti2026: PASS
+- 16/16 local team images present: PASS
+
+SHA256:
+99507c85e1f88365138c9ed3c927b7dc77ed646f1d654d5f03e08bff917ac06e  server.js
+0f338636a6d15dce0c5427e471b4c4db5f3139b35714899968e7f1d81dff7582  public/index.html
+a9f9b3b6cc0f20f109157e78469d0863b182449ecccda292575c0e6847ff0f6e  public/app.js
+c2386c9ff813227e8a7aa9fa6b867e3fed24de06500dbe7a603a0578b37c4763  public/match.js
+35cde76047e26197fbc4380e34aa007d135914bb33f501afa187687600be4754  public/styles.css
+042a79a669212aaa2445b98a0cc9f4a221a863dec46bc13964c653abb2647420  data/seed.json
+526a5af410acee4a96016e10e484faafec20daa2fd3f13ed868e128ccb33bfe7  docker-compose.yml
+95f6cc4b9a0c1d229c62310b309a95d88b4785ac37afde2335ddb9b97271fcda  Dockerfile
+a3899a84b377c6fed82e4243b126db663da9a491a1a9e05d303aae04ab2b7945  deploy/linux/install.sh
+681db51c027d3977a51a86e9242365a2c69f4cbf269e1d98f9fef106ef10bdd2  deploy/linux/update.sh
+27e77f3184adfd23d0865aa7d697c6250190cbb53190099274ec931a5cf8f693  deploy/nginx/ti2026-guide.conf
+64ac828fef8c2b1917a4b07f121765f1677044ed654a8cc620580bf33b258445  public/assets/teams/aurora-gaming.webp
+6804b151c1a8a25b4fd48b25be1acb00303de1fe7067f4eebc389b4948750463  public/assets/teams/boomboys.webp
+b79e71f46f33bcc5da9b8954d0ffcb6f3ca41dc82eaa21e6009a4b2a830e7282  public/assets/teams/gamerlegion.webp
+dbb7565907db824de26355b4e8caef9dfdf8bf203282d6fff263849dafb28876  public/assets/teams/huligani.webp
+5cdefbda1f4e9f8997dcc11ca30caf80b7549cddd298e12f1908914bcfb1a586  public/assets/teams/iron-wing.webp
+36745b7f66623cd8ce5d06b54de9bb4a0e00168411425cc3c7bce258b95e8a5c  public/assets/teams/lgd-gaming.webp
+5d1134adcd1cd0b6cf3182da0fe198db814020108ad6af6d27f5bb768a69bfb1  public/assets/teams/nigma-galaxy.webp
+bcad190fa0acf859f01b350cef4f567808621a3e663146c0da86b08683a1ed88  public/assets/teams/og.webp
+a6ac1380df3aa6ff6a437455c07ee552e81f25b39652720822e969d23c3357e6  public/assets/teams/team-falcons.webp
+b9479ee16bd31e8d69c252a87eabff7a09063295eb021f557178e438fa2eb489  public/assets/teams/team-liquid.webp
+9dcba62ab6b549927ba218302525d037d71ebbc5f9f7262208e0dc0547dca6b0  public/assets/teams/team-resilience.webp
+ab8a06376587c3dbb9285f9efc1cd6fe884a011f5cd78a9d5b8676f7a04aa7ad  public/assets/teams/team-spirit.webp
+a8a2111b9d0012a85a859e96958b6a04692972caeef8dd553e6543ce3c41d6e8  public/assets/teams/team-vision.webp
+cf639ae17dbc379f93aaa22c72a6fff1a515643a440f8d8ed7a9e387cbd8eae2  public/assets/teams/team-yandex.webp
+6f360b9255d69dd7ab9b740db70964527dd1ce85c732dda5e229ca29349e98e3  public/assets/teams/vici-gaming.webp
+1dd8d6726fc2c986744a01432cd55d442a11e887cc2e1a6f9c716e0a38743bc2  public/assets/teams/xtreme-gaming.webp
