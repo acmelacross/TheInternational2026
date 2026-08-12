@@ -1,9 +1,92 @@
-name: bootstrap-check
+name: Publish TI2026 v1.3.0 source
+
 on:
   push:
     branches: [main]
+
+permissions:
+  contents: write
+
 jobs:
-  check:
+  publish:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - run: echo bootstrap-ready
+      - uses: actions/checkout@v4
+
+      - name: Restore v1.3.0 source and local team images
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import urllib.request
+
+          repo = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GH_TOKEN']
+
+          def fetch_blob(sha):
+              req = urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}/git/blobs/{sha}',
+                  headers={
+                      'Authorization': f'Bearer {token}',
+                      'Accept': 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                  },
+              )
+              with urllib.request.urlopen(req) as resp:
+                  payload = json.load(resp)
+              return base64.b64decode(payload['content'].replace('\n', ''))
+
+          chunks = [
+              'f6e96c0312ccbf70e400b45bd2d0279df391c54b',
+              'd011c246f09c6936127945f9646dc00f6394c7f9',
+              '6bbe231581e150135acdea4da2e256a165ac471a',
+              'cd92dddf26ca53dcee9acae6686d2f43d05cfd4b',
+              '5b5a4b22768394f68b7e06543c96a9097f610c1a',
+              'e6b4d4facce4ac0bf2d5e67b7cf703b98b284da1',
+          ]
+          zip_bytes = b''.join(fetch_blob(sha) for sha in chunks)
+          assert len(zip_bytes) == 46930, len(zip_bytes)
+          assert hashlib.sha256(zip_bytes).hexdigest() == '975131e29c1f842b86ddfcfc65a7749d99f6b753f9aa4784f4961bd7c13572a8'
+          pathlib.Path('/tmp/ti2026-source.zip').write_bytes(zip_bytes)
+
+          images = {
+              'public/assets/teams/aurora-gaming.webp': 'a0a0cb169234d4db3e0ac81e71b6f71fb9d5ab4f',
+              'public/assets/teams/boomboys.webp': '90db6cd4fecf3c630ece2745586bf3ac89e0f842',
+              'public/assets/teams/gamerlegion.webp': '3c611edd762a10d193ab8aa64fb6d6ee6ec8698c',
+              'public/assets/teams/huligani.webp': 'ed0cd3da30052c88d1d0496e8507f4901939a258',
+              'public/assets/teams/iron-wing.webp': '3795d18c2b6e41d9ab65357b9c7905a8f94a6c9e',
+              'public/assets/teams/lgd-gaming.webp': 'cb5aaae2ce6f8a9cad8b8a677578ea94e1f97f7e',
+              'public/assets/teams/nigma-galaxy.webp': 'd13d06d0e7335faac0ca3ff91f8791704d74d08d',
+              'public/assets/teams/og.webp': '21708574ce1bb05d7b42187c6118594c3d6f3e7f',
+              'public/assets/teams/team-falcons.webp': '578cda872f5bc2e206c251e3f24ddf45a9a30a24',
+              'public/assets/teams/team-liquid.webp': '21d80eff656ac89f40aa87855056ad54bc2c9429',
+              'public/assets/teams/team-resilience.webp': '4fe944527458d50cc099fa437463eb4517886562',
+              'public/assets/teams/team-spirit.webp': '7d00d147a9524d8f52b27c2967862bd87d44e72c',
+              'public/assets/teams/team-vision.webp': '852b1a75d97bb4b1f03a504be791913f114ccbab',
+              'public/assets/teams/team-yandex.webp': '7a6068f4bdf32abf63d949845271654eb781097b',
+              'public/assets/teams/vici-gaming.webp': '9ef29412e24e4161d424faf88d17b39df46a236f',
+              'public/assets/teams/xtreme-gaming.webp': '32fdbd7d09edb3ce47013883cf9f358ef6da238d',
+          }
+          for path, sha in images.items():
+              target = pathlib.Path(path)
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(fetch_blob(sha))
+          PY
+
+          unzip -oq /tmp/ti2026-source.zip -d .
+          rm -f .github/workflows/bootstrap.yml
+          chmod +x start.sh deploy/linux/install.sh deploy/linux/update.sh
+
+      - name: Commit complete source to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Upload TI2026 viewing guide v1.3.0"
+          git push origin main
