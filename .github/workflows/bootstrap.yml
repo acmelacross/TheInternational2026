@@ -1,0 +1,9 @@
+name: bootstrap-check
+on:
+  push:
+    branches: [main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo bootstrap-ready
