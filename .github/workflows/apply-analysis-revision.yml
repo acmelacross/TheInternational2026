@@ -1,0 +1,37 @@
+name: Apply AI team-intel cache revision
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-analysis-revision.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply analysis revision
+        run: node scripts/apply-analysis-revision.js
+      - name: Validate
+        run: |
+          node --check ai-service.js
+          grep -q "team-intel-v1-20260813" ai-service.js
+          grep -q "analysisRevision" ai-service.js
+      - name: Remove one-time files
+        run: |
+          rm -f scripts/apply-analysis-revision.js
+          rm -f .github/workflows/apply-analysis-revision.yml
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Refresh AI cache once for team intelligence pipeline"
+          git push
