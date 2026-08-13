@@ -1,0 +1,57 @@
+name: Apply TI2026 v1.3.4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-v134.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Snapshot user-supplied team logos
+        run: |
+          find public/assets/teams-normal -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/team-logos.before
+      - name: Apply v1.3.4 source changes
+        run: node scripts/apply-v134.js
+      - name: Verify user-supplied team logos unchanged
+        run: |
+          find public/assets/teams-normal -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/team-logos.after
+          diff -u /tmp/team-logos.before /tmp/team-logos.after
+      - name: Syntax and project tests
+        run: |
+          node --check server.js
+          node --check ai-service.js
+          node --check public/app.js
+          node --check public/match.js
+          node --check public/ai-analysis.js
+          node tests.js
+          test "$(cat VERSION)" = "1.3.4"
+          grep -q 'aiAnalysisSection' public/match.html
+          grep -q '/api/ai/analysis' server.js
+          grep -q 'cache/ai-analysis/' .gitignore
+      - name: Ensure no obvious API secrets were committed
+        run: |
+          if grep -R -E 'sk-[A-Za-z0-9._-]{20,}|bce-v3/[A-Za-z0-9/_-]{20,}' . --exclude-dir=.git --exclude='*.md'; then
+            echo 'Potential API secret found in repository'
+            exit 1
+          fi
+      - name: Remove one-time upgrade files
+        run: |
+          rm -f scripts/apply-v134.js
+          rm -f .github/workflows/apply-v134.yml
+      - name: Commit v1.3.4
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update TI2026 viewing guide to v1.3.4"
+          git push
