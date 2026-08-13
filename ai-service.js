@@ -52,9 +52,7 @@ const KIMI_RESPONSE_FORMAT = {
 
 function cleanBase(v) { return String(v || '').replace(/\/+$/, ''); }
 function kimiBaseUrl() {
-  const configured = cleanBase(envFirst('KIMI_BASE_URL'));
-  if (!configured || /^https:\/\/api\.moonshot\.cn\/v1$/i.test(configured)) return 'https://api.moonshot.ai/v1';
-  return configured;
+  return cleanBase(envFirst('KIMI_BASE_URL') || 'https://api.moonshot.cn/v1');
 }
 function envFirst(...names) {
   for (const n of names) {
