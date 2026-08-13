@@ -858,6 +858,28 @@ const server = http.createServer(async (req, res) => {
       const result = await aiService.analyzeOnce({ match, matchIds, games, teamIntel });
       return sendJson(res, 200, result);
     }
+    if (u.pathname === '/api/ai/retry' && req.method === 'POST') {
+      const seriesId = u.searchParams.get('id');
+      const providerId = u.searchParams.get('provider');
+      const data = await refresh(false);
+      const match = (data.matches || []).find(m => String(m.id) === String(seriesId));
+      if (!match) return sendJson(res, 404, { error: 'match_not_found' });
+      if (!providerId) return sendJson(res, 400, { error: 'missing_provider' });
+      const matchIds = Array.from(new Set([...(match.matchIds || []), ...extractMatchIds(match.games || [])]));
+      const games = [];
+      for (const matchId of matchIds.slice(0, 5)) {
+        try { games.push({ ok: true, data: await fetchDota2Game(matchId) }); }
+        catch (err) { games.push({ ok: false, matchId, error: err.message }); }
+      }
+      const teamIntel = await teamIntelService.getMatchIntel(match).catch(err => ({ error: err.message, teams: [] }));
+      try {
+        const result = await aiService.retryProvider({ match, matchIds, games, teamIntel }, providerId);
+        return sendJson(res, 200, result);
+      } catch (err) {
+        const status = err.code === 'retry_too_frequent' ? 429 : err.code === 'retry_limit_reached' ? 429 : 400;
+        return sendJson(res, status, { error: err.code || 'retry_failed', message: err.message, retryAfterSeconds: err.retryAfterSeconds || null });
+      }
+    }
     if (u.pathname === '/api/team-intel') {
       const seriesId = u.searchParams.get('id');
       const data = await refresh(false);

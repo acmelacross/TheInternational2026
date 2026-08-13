@@ -7,7 +7,7 @@ const os = require('os');
 const { spawn } = require('child_process');
 
 const ANALYSIS_REVISION = 'team-intel-v1-20260813';
-const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-curl-v7-20260813', ernie:'ernie-format-v2-20260813' };
+const FORMAT_REVISIONS = { qwen:'qwen-json-v3-20260813', kimi:'kimi-k3-curl-v7-20260813', ernie:'ernie-format-v2-20260813' };
 function providerRevision(p){ return FORMAT_REVISIONS[p.id] || ANALYSIS_REVISION; }
 const KIMI_RESPONSE_FORMAT = {
   type:'json_schema',
@@ -149,7 +149,7 @@ function parseAnalysis(text) {
 }
 function providerList() {
   return [
-    { id:'qwen', name:'Qwen3.8-Max', vendor:'阿里云百炼', api:'chat', key:envFirst('QWEN_API_KEY','DASHSCOPE_API_KEY'), model:envFirst('QWEN_MODEL')||'qwen3.8-max', baseUrl:cleanBase(envFirst('QWEN_BASE_URL')||'https://dashscope.aliyuncs.com/compatible-mode/v1'), body:{ reasoning_effort:'medium', response_format:{type:'json_object'}, max_tokens:undefined } },
+    { id:'qwen', name:'Qwen3.8-Max', vendor:'阿里云百炼', api:'chat', key:envFirst('QWEN_API_KEY','DASHSCOPE_API_KEY'), model:envFirst('QWEN_MODEL')||'qwen3.8-max', baseUrl:cleanBase(envFirst('QWEN_BASE_URL')||'https://dashscope.aliyuncs.com/compatible-mode/v1'), timeoutMs:270000, body:{ reasoning_effort:'low', response_format:{type:'json_object'}, max_tokens:undefined, max_completion_tokens:8192 } },
     { id:'deepseek', name:'DeepSeek-V4-Pro', vendor:'DeepSeek', api:'chat', key:envFirst('DEEPSEEK_API_KEY'), model:envFirst('DEEPSEEK_MODEL')||'deepseek-v4-pro', baseUrl:cleanBase(envFirst('DEEPSEEK_BASE_URL')||'https://api.deepseek.com'), body:{ thinking:{type:'disabled'} } },
     { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:kimiBaseUrl(), timeoutMs:280000, body:{ reasoning_effort:'low', max_tokens:undefined } },
     { id:'doubao', name:'Doubao-Seed-2.1-Pro', vendor:'火山方舟', api:'responses', key:envFirst('DOUBAO_API_KEY','ARK_API_KEY'), model:envFirst('DOUBAO_MODEL')||'doubao-seed-2-1-pro-260628', baseUrl:cleanBase(envFirst('DOUBAO_BASE_URL')||'https://ark.cn-beijing.volces.com/api/v3'), body:{ thinking:{type:'disabled'} } },
@@ -248,7 +248,17 @@ function createAiService({ root, dataDir }) {
       const out=await curlPostJson(url,headers,body,p.timeoutMs||120000);
       status=out.status;ok=out.ok;responseType=out.contentType||'';raw=out.raw;
     }else{
-      const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(p.timeoutMs||120000)});
+      const timeoutMs=p.timeoutMs||120000;
+      let res;
+      try{
+        res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(timeoutMs)});
+      }catch(err){
+        const msg=String(err?.message||'');
+        if(err?.name==='TimeoutError'||err?.name==='AbortError'||/timeout|aborted/i.test(msg)){
+          throw new Error(`${p.vendor} 请求超过 ${Math.round(timeoutMs/1000)} 秒仍未完成，已由服务器主动终止`);
+        }
+        throw err;
+      }
       status=res.status;ok=res.ok;responseType=res.headers.get('content-type')||'';raw=await res.text();
     }
     let json=null; try{json=JSON.parse(raw)}catch(_){}
@@ -310,7 +320,66 @@ function createAiService({ root, dataDir }) {
       return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`${cacheDir}/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,analysisRevision:ANALYSIS_REVISION,policy:'服务器全局缓存：同一场系列赛 × 同一模型 × 同一分析版本，全站最多调用一次；所有访客共享 /var/lib/ti2026-guide 的持久缓存，刷新页面、多人访问和重新部署均不会重复消耗 Token。'};
     })().finally(()=>inFlight.delete(seriesId));inFlight.set(seriesId,promise);return promise;
   }
-  return{getStatus,getCachedAnalysis,analyzeOnce,configuredCount};
+  async function retryProvider(context, providerId){
+    const seriesId=String(context?.match?.id||'').trim();
+    const id=String(providerId||'').trim();
+    if(!seriesId){const e=new Error('missing_series_id');e.code='missing_series_id';throw e;}
+    const p=providerList().find(x=>x.id===id);
+    if(!p){const e=new Error('unknown_provider');e.code='unknown_provider';throw e;}
+    if(!p.key){const e=new Error('provider_not_configured');e.code='provider_not_configured';throw e;}
+
+    const file=cachePath(seriesId);
+    const existing=readJson(file,{seriesId,generatedAt:null,models:{}});
+    existing.models||={};
+    const prior=existing.models[p.id];
+    if(!prior || prior.model!==p.model || prior.analysisRevision!==providerRevision(p) || prior.status!=='error'){
+      return getCachedAnalysis(seriesId,context.match);
+    }
+
+    const attempts=Math.max(0,Number(prior.manualRetryCount)||0);
+    if(attempts>=3){
+      const e=new Error('该模型本场已手动重试 3 次，请先排查平台或配置后再更新分析版本');
+      e.code='retry_limit_reached';
+      throw e;
+    }
+    const lastAt=Date.parse(prior.lastManualRetryAt||'')||0;
+    const waitMs=60000-(Date.now()-lastAt);
+    if(lastAt && waitMs>0){
+      const e=new Error(`请等待 ${Math.ceil(waitMs/1000)} 秒后再重试`);
+      e.code='retry_too_frequent';
+      e.retryAfterSeconds=Math.ceil(waitMs/1000);
+      throw e;
+    }
+
+    const retryKey=`retry:${seriesId}:${p.id}`;
+    if(inFlight.has(retryKey)) return inFlight.get(retryKey);
+    const promise=(async()=>{
+      const prompt=buildPrompt(context);
+      const startedAt=new Date().toISOString();
+      const manualRetryCount=attempts+1;
+      const lastManualRetryAt=startedAt;
+      try{
+        const out=await doFetch(p,prompt);
+        const analysis=parseAnalysis(out.text);
+        const result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:providerRevision(p),status:'ok',connected:true,cached:false,startedAt,finishedAt:new Date().toISOString(),analysis,rawText:analysis?.summary?null:out.text.slice(0,2200),usage:out.usage,manualRetryCount,lastManualRetryAt};
+        existing.models[p.id]=result;
+        updateStatus(p,{state:'connected',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason:`手动重试成功（第 ${manualRetryCount} 次）`});
+      }catch(err){
+        const reason=redact(err.message);
+        const result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:providerRevision(p),status:'error',connected:false,cached:false,startedAt,finishedAt:new Date().toISOString(),error:reason,manualRetryCount,lastManualRetryAt};
+        existing.models[p.id]=result;
+        updateStatus(p,{state:'failed',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason});
+      }
+      existing.generatedAt=existing.generatedAt||new Date().toISOString();
+      existing.updatedAt=new Date().toISOString();
+      existing.aggregate=aggregate(existing.models,context.match);
+      writeJson(file,existing);
+      return getCachedAnalysis(seriesId,context.match);
+    })().finally(()=>inFlight.delete(retryKey));
+    inFlight.set(retryKey,promise);
+    return promise;
+  }
+  return{getStatus,getCachedAnalysis,analyzeOnce,retryProvider,configuredCount};
 }
 
 module.exports={createAiService};

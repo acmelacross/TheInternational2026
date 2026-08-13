@@ -19,7 +19,11 @@
   function detailBlock(title, items, empty){ return `<div class="ai-detail-block"><h4>${esc(title)}</h4>${reasonList(items,empty)}</div>`; }
   function analysisCard(m){
     if(m.status === 'unconfigured') return `<article class="ai-model-card off"><div class="ai-model-head"><div><span>${esc(m.vendor)}</span><h3>${esc(m.name)}</h3><small>${esc(m.model)}</small></div><b>未配置</b></div><p class="ai-error">服务器未配置该平台 API Key。</p></article>`;
-    if(m.status === 'error') return `<article class="ai-model-card error"><div class="ai-model-head"><div><span>${esc(m.vendor)}</span><h3>${esc(m.name)}</h3><small>${esc(m.model)}</small></div><b>调用失败</b></div><p class="ai-error">${esc(m.error || '未知错误')}</p><div class="ai-cache-note">失败状态也已缓存，不会自动重复调用。</div></article>`;
+    if(m.status === 'error') {
+      const retries=Math.max(0,Number(m.manualRetryCount)||0);
+      const exhausted=retries>=3;
+      return `<article class="ai-model-card error"><div class="ai-model-head"><div><span>${esc(m.vendor)}</span><h3>${esc(m.name)}</h3><small>${esc(m.model)}</small></div><b>调用失败</b></div><p class="ai-error">${esc(m.error || '未知错误')}</p><div class="ai-error-actions"><button type="button" class="ai-retry-btn" data-ai-retry="${esc(m.id)}" ${exhausted?'disabled':''}>${exhausted?'已达重试上限':'↻ 重新分析'}</button><span>${retries?`已手动重试 ${retries}/3 次`:'失败已缓存，不会自动重复调用'}</span></div></article>`;
+    }
     if(m.status !== 'ok') return `<article class="ai-model-card"><div class="ai-model-head"><div><span>${esc(m.vendor)}</span><h3>${esc(m.name)}</h3><small>${esc(m.model)}</small></div><b>等待</b></div></article>`;
     const a=m.analysis||{};
     return `<article class="ai-model-card ok"><div class="ai-model-head"><div><span>${esc(m.vendor)}</span><h3>${esc(m.name)}</h3><small>${esc(m.model)}</small></div><b>${esc(a.confidence || 0)}%</b></div><div class="ai-pick"><span>系列赛倾向</span><strong>${esc(a.winnerLean || '势均力敌')}</strong><em>${esc(a.scorePrediction || '待定')}</em></div><p class="ai-summary">${esc(a.summary || m.rawText || '暂无摘要')}</p><div class="ai-section-label">逐局胜负分析</div>${gameRows(a.gamePredictions)}<div class="ai-detail-grid">${detailBlock('选手状态',a.playerForm,'当前没有足够真实统计判断近期状态')}${detailBlock('BP 分析',a.bpAnalysis,'暂无足够 BP 数据')}${detailBlock('公开关系背景',a.relationshipContext,'暂无可靠公开资料')}${detailBlock('数据缺口',a.dataGaps,'未发现额外数据缺口')}</div><div class="ai-mini-grid"><div><h4>主要理由</h4>${reasonList(a.keyReasons)}</div><div><h4>比赛看点</h4>${reasonList(a.watchPoints)}</div></div>${a.risks?`<div class="ai-risk"><b>不确定性</b><span>${esc(a.risks)}</span></div>`:''}<div class="ai-cache-note">${m.cached?'已读取持久化本地缓存':'首次调用已完成并缓存'}</div></article>`;
@@ -113,5 +117,33 @@
       if(note) note.textContent=`AI 分析服务异常：${e.message}`;
     }
   }
-  window.addEventListener('DOMContentLoaded',()=>{ loadStatus(); setTimeout(loadAnalysis,120); });
+  async function retryModel(providerId, button){
+    if(!seriesId || !providerId || !button) return;
+    const note=$('#aiAnalysisState');
+    button.disabled=true;
+    const oldText=button.textContent;
+    button.textContent='重新分析中...';
+    if(note) note.textContent=`正在单独重新调用 ${providerId}，其他模型继续使用已有缓存。`;
+    try{
+      const r=await fetch(`/api/ai/retry?id=${encodeURIComponent(seriesId)}&provider=${encodeURIComponent(providerId)}`,{method:'POST',cache:'no-store'});
+      const d=await readApiJson(r,'AI 单模型重试接口');
+      renderAnalysis(d);
+      await loadStatus();
+      if(note) note.textContent='单模型重新分析已完成；其他模型没有重复调用。';
+    }catch(e){
+      button.disabled=false;
+      button.textContent=oldText;
+      if(note) note.textContent=`重新分析失败：${e.message}`;
+    }
+  }
+
+  function bindRetryButtons(){
+    document.addEventListener('click',e=>{
+      const button=e.target.closest('[data-ai-retry]');
+      if(!button) return;
+      e.preventDefault();
+      retryModel(button.dataset.aiRetry,button);
+    });
+  }
+  window.addEventListener('DOMContentLoaded',()=>{ bindRetryButtons(); loadStatus(); setTimeout(loadAnalysis,120); });
 })();
