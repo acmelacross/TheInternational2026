@@ -15,8 +15,9 @@ const CACHE_PATH = path.join(DATA_DIR, 'ti2026.json');
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT || 17826);
-const AUTO_REFRESH_INTERVAL_MS = Math.max(3600, Number(process.env.AUTO_REFRESH_INTERVAL_SECONDS || 3600)) * 1000;
-const CACHE_TTL_MS = Math.max(AUTO_REFRESH_INTERVAL_MS, Math.max(60, Number(process.env.CACHE_TTL_SECONDS || 3600)) * 1000);
+const LIVE_REFRESH_SECONDS = Math.max(60, Number(process.env.LIVE_REFRESH_INTERVAL_SECONDS || 120));
+const AUTO_REFRESH_INTERVAL_MS = LIVE_REFRESH_SECONDS * 1000;
+const CACHE_TTL_MS = AUTO_REFRESH_INTERVAL_MS;
 const LIQUIPEDIA_API_KEY = (process.env.LIQUIPEDIA_API_KEY || '').trim();
 const PUBLIC_FALLBACK_ENABLED = String(process.env.PUBLIC_FALLBACK_ENABLED || 'true').toLowerCase() !== 'false';
 const APP_NAME = process.env.APP_NAME || 'TI2026-Viewing-Guide';
@@ -24,6 +25,8 @@ const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim();
 const LP_BASE = 'https://api.liquipedia.net/api/v3/';
 const PUBLIC_MATCHES_API = 'https://dota.haglund.dev/v1/matches';
 const DOTA2DB_API = 'https://liquipedia.net/dota2/api.php';
+const OPENDOTA_BASE_URL = String(process.env.OPENDOTA_BASE_URL || 'https://api.opendota.com/api').replace(/\/+$/, '');
+const OPENDOTA_API_KEY = String(process.env.OPENDOTA_API_KEY || '').trim();
 const GAME_DETAIL_TTL_MS = Math.max(60, Number(process.env.GAME_DETAIL_TTL_SECONDS || 300)) * 1000;
 const gameDetailCache = new Map();
 
@@ -392,6 +395,85 @@ function nameKey(name) {
   return String(name || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '');
 }
 
+async function fetchOpenDotaProResults() {
+  const u = new URL(`${OPENDOTA_BASE_URL}/proMatches`);
+  if (OPENDOTA_API_KEY) u.searchParams.set('api_key', OPENDOTA_API_KEY);
+  const res = await fetch(u, {
+    headers: { 'Accept':'application/json', 'User-Agent':`${APP_NAME}/1.3 (${CONTACT_EMAIL || 'TI2026 viewing guide'})` },
+    signal: AbortSignal.timeout(15000)
+  });
+  if (!res.ok) throw new Error(`OpenDota HTTP ${res.status}`);
+  const rows = await res.json();
+  if (!Array.isArray(rows)) return [];
+  const from = Date.parse('2026-08-12T00:00:00Z') / 1000;
+  const to = Date.parse('2026-08-24T23:59:59Z') / 1000;
+  return rows.filter(r => {
+    const league = String(r?.league_name || '').toLowerCase();
+    const at = Number(r?.start_time || 0);
+    return at >= from && at <= to && league.includes('international');
+  });
+}
+
+function openDotaPairKey(a, b) {
+  return [nameKey(canonicalTeamName(a)), nameKey(canonicalTeamName(b))].sort().join('|');
+}
+
+function applyOpenDotaScores(matches, rows) {
+  if (!Array.isArray(rows) || !rows.length) return matches;
+  const groups = new Map();
+  for (const r of rows) {
+    const radiant = canonicalTeamName(r?.radiant_name || '');
+    const dire = canonicalTeamName(r?.dire_name || '');
+    if (!radiant || !dire) continue;
+    const pairKey = openDotaPairKey(radiant, dire);
+    const at = Number(r?.start_time || 0) * 1000;
+    const seriesId = Number(r?.series_id || 0);
+    const groupKey = seriesId > 0 ? `series:${seriesId}` : `pair:${pairKey}:${Math.floor(at/(4*3600000))}`;
+    if (!groups.has(groupKey)) groups.set(groupKey, { pairKey, firstAt:at, games:[] });
+    const g = groups.get(groupKey);
+    g.firstAt = Math.min(g.firstAt || at, at);
+    g.games.push({ ...r, radiant, dire, at });
+  }
+  const all = [...groups.values()];
+  return (matches || []).map(m => {
+    const a = m?.teams?.[0]?.name || '';
+    const b = m?.teams?.[1]?.name || '';
+    if (!a || !b || a === '待定' || b === '待定') return m;
+    const pairKey = openDotaPairKey(a, b);
+    const scheduledAt = Date.parse(m.startsAt || '') || 0;
+    const candidates = all.filter(g => g.pairKey === pairKey && Math.abs(g.firstAt - scheduledAt) <= 8*3600000)
+      .sort((x,y) => Math.abs(x.firstAt-scheduledAt)-Math.abs(y.firstAt-scheduledAt));
+    const g = candidates[0];
+    if (!g) return m;
+    const scores = new Map([[nameKey(canonicalTeamName(a)),0],[nameKey(canonicalTeamName(b)),0]]);
+    const matchIds = new Set(m.matchIds || []);
+    for (const game of g.games) {
+      if (game.match_id) matchIds.add(String(game.match_id));
+      const radiantWon = game.radiant_win === true || game.radiant_win === 1 || String(game.radiant_win).toLowerCase() === 'true';
+      const winner = radiantWon ? game.radiant : game.dire;
+      const key = nameKey(canonicalTeamName(winner));
+      if (scores.has(key)) scores.set(key, scores.get(key) + 1);
+    }
+    const bestOf = Number(m.bestOf || 3);
+    const winsNeeded = Math.floor(bestOf/2) + 1;
+    const teams = (m.teams || []).map(t => ({ ...t, score:scores.get(nameKey(canonicalTeamName(t.name))) ?? t.score ?? 0 }));
+    const maxScore = Math.max(...teams.map(t => Number(t.score || 0)));
+    const finished = maxScore >= winsNeeded;
+    if (finished) teams.forEach(t => { t.winner = Number(t.score || 0) === maxScore; });
+    const now = Date.now();
+    const activeWindow = now >= scheduledAt - 15*60000 && now <= scheduledAt + 8*3600000;
+    const status = finished ? 'finished' : (g.games.length && activeWindow ? 'live' : m.status);
+    return {
+      ...m,
+      teams,
+      status,
+      matchIds:[...matchIds],
+      scoreSource:'OpenDota proMatches',
+      scoreUpdatedAt:new Date().toISOString()
+    };
+  });
+}
+
 function matchKey(m) {
   const t = Date.parse(m.startsAt || '') || 0;
   const bucket = Math.floor(t / (30 * 60 * 1000));
@@ -479,10 +561,16 @@ async function buildPayload() {
     catch (err) { errors.push(`Public fallback: ${err.message}`); }
   }
 
-  const matches = mergeMatches(seed.matches, publicUpcoming, lp.matches).map(decorateMatch);
+  let openDotaResults = [];
+  try { openDotaResults = await fetchOpenDotaProResults(); }
+  catch (err) { errors.push(`OpenDota scores: ${err.message}`); }
+
+  const mergedMatches = mergeMatches(seed.matches, publicUpcoming, lp.matches);
+  const matches = applyOpenDotaScores(mergedMatches, openDotaResults).map(decorateMatch);
   const teams = deriveTeams(matches);
   const standings = deriveStandings(matches, teams);
-  const source = lp.matches.length ? 'liquipedia' : publicUpcoming.length ? 'public+seed' : 'seed';
+  const baseSource = lp.matches.length ? 'liquipedia' : publicUpcoming.length ? 'public+seed' : 'seed';
+  const source = openDotaResults.length ? `${baseSource}+opendota` : baseSource;
 
   return {
     event: seed.event,
@@ -503,10 +591,12 @@ async function buildPayload() {
       liquipedia: lp.meta,
       publicFallbackEnabled: PUBLIC_FALLBACK_ENABLED,
       publicUpcomingCount: publicUpcoming.length,
+      openDotaResultCount: openDotaResults.length,
+      liveRefreshSeconds: LIVE_REFRESH_SECONDS,
       seedCount: seed.matches.length,
       errors
     },
-    attribution: '赛程数据优先来自 Liquipedia LPDB v3；Liquipedia 数据遵循 CC BY-SA 3.0。无 API Key 时使用内置已公布赛程与公共赛程降级源。'
+    attribution: '赛程优先来自 Liquipedia LPDB v3；无 Liquipedia API Key 时使用内置赛程与公共 upcoming 源。已结束逐局结果与系列赛比分由 OpenDota proMatches 补充，并按约 2 分钟周期刷新。'
   };
 }
 

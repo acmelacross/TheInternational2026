@@ -8,3 +8,23 @@ footer{display:flex;flex-direction:column;align-items:center;gap:8px}.tech-suppo
 /* v1.3.8 homepage slogan */
 .hero-copy h1{font-size:0!important;line-height:1.16}.hero-copy h1 span{display:none!important}.hero-copy h1::after{content:"TI2026潍坊线下观赛，一站掌握赛程、战队、预测与实时赛况。";display:block;font-size:clamp(34px,5vw,72px);line-height:1.08;font-weight:900;letter-spacing:-.035em;color:var(--text)}
 @media(max-width:600px){.hero-copy h1::after{font-size:34px;line-height:1.12}}
+
+
+/* compact AI status v1 */
+.ai-analysis-section{padding-top:24px!important;padding-bottom:28px!important}
+.ai-analysis-section .section-heading{margin-bottom:8px!important;align-items:center}
+.ai-analysis-section .section-heading h2{font-size:20px!important;margin-top:3px}
+.ai-analysis-section .section-desc{font-size:10px!important;line-height:1.4;margin-top:4px}
+.ai-once-badge{padding:4px 8px!important;font-size:9px!important}
+.ai-model-status{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:5px!important;margin-bottom:8px!important}
+.ai-status{grid-template-columns:6px minmax(0,1fr) auto!important;gap:5px!important;padding:6px 7px!important;min-height:34px!important}
+.ai-status .ai-dot{width:6px!important;height:6px!important;box-shadow:none!important}
+.ai-status b{font-size:9px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-status small,.ai-status em{display:none!important}
+.ai-status strong{font-size:8px!important;white-space:nowrap}
+.ai-consensus{margin:7px 0 9px!important;padding:9px 11px!important}
+.ai-consensus-main{gap:8px!important}.ai-consensus-main span{font-size:9px!important}.ai-consensus-main strong{font-size:17px!important}.ai-consensus-main em{font-size:9px!important}
+.ai-consensus-votes{margin-top:5px!important;gap:5px!important}.ai-consensus-votes span{padding:4px 6px!important;font-size:9px!important}
+.ai-analysis-state{margin:0 0 8px!important;font-size:9px!important}
+@media(max-width:1200px){.ai-model-status{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:600px){.ai-model-status{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ai-analysis-section{padding-top:18px!important}.ai-analysis-section .section-desc{font-size:9px!important}}

@@ -77,11 +77,11 @@ async function load(force = false) {
 
 function render() {
   const d = state.data; if (!d) return;
-  const src = d.source === 'liquipedia' ? 'Liquipedia 自动更新' : d.source === 'public+seed' ? '公共赛程 + 内置' : '内置赛程';
+  const src = String(d.source||'').includes('opendota') ? '赛程 + OpenDota 比分' : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : d.source === 'public+seed' ? '公共赛程 + 内置' : '内置赛程';
   $('#sourceBadge').textContent = src;
   $('#sourceBadge').title = (d.dataStatus?.errors || []).join('\n');
   $('#updatedAt').textContent = fmtUpdated.format(new Date(d.generatedAt));
-  $('#dataDetail').textContent = d.source === 'liquipedia' ? 'Liquipedia LPDB v3 已连接' : d.dataStatus?.liquipediaConfigured ? 'Liquipedia 暂不可用，已自动降级' : '未配置 Liquipedia Key，当前使用已公布赛程';
+  $('#dataDetail').textContent = String(d.source||'').includes('opendota') ? `比分：OpenDota · 约 ${d.dataStatus?.liveRefreshSeconds||120} 秒同步` : d.source === 'liquipedia' ? 'Liquipedia LPDB v3 已连接' : d.dataStatus?.liquipediaConfigured ? 'Liquipedia 暂不可用，已自动降级' : '未配置 Liquipedia Key，当前使用已公布赛程';
   renderChina();
   renderToday();
   renderStandings();
@@ -263,4 +263,4 @@ window.addEventListener('scroll', () => $('#backTop').classList.toggle('show', w
 setupSectionNav();
 armLocalReminders();
 load(false);
-setInterval(() => load(false), 5 * 60 * 1000);
+setInterval(() => load(false), 60 * 1000);

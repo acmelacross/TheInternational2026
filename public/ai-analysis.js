@@ -54,6 +54,14 @@
 
   async function fetchCache(){
     const r=await fetch(`/api/ai/cache?id=${encodeURIComponent(seriesId)}`,{cache:'no-store'});
+    if(r.status===404){
+      const text=await r.text();
+      let d=null; try{ d=text?JSON.parse(text):null; }catch(_){}
+      if(d?.error==='not_found' || d?.error==='match_not_found'){
+        return {found:false,complete:false,seriesId,models:[],aggregate:null};
+      }
+      throw new Error(d?.message||d?.error||'AI 缓存接口 HTTP 404');
+    }
     return readApiJson(r,'AI 缓存接口');
   }
 
