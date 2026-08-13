@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL, URLSearchParams } = require('url');
+const { createAiService } = require('./ai-service');
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -23,6 +24,7 @@ const GAME_DETAIL_TTL_MS = Math.max(60, Number(process.env.GAME_DETAIL_TTL_SECON
 const gameDetailCache = new Map();
 
 const seed = JSON.parse(fs.readFileSync(SEED_PATH, 'utf8'));
+const aiService = createAiService({ root: ROOT });
 
 const TEAM_NAME_ALIASES = new Map([
   ['1wteam', 'Iron Wing'], ['1winteam', 'Iron Wing'], ['tundraesports', 'Iron Wing'],
@@ -557,11 +559,29 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
     if (u.pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.0', liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), now: new Date().toISOString() });
+      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.4', liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
     }
     if (u.pathname === '/api/ti2026') {
       const data = await refresh(false);
       return sendJson(res, 200, data);
+    }
+    if (u.pathname === '/api/ai/status') {
+      const seriesId = u.searchParams.get('id');
+      return sendJson(res, 200, aiService.getStatus(seriesId));
+    }
+    if (u.pathname === '/api/ai/analysis' && (req.method === 'POST' || req.method === 'GET')) {
+      const seriesId = u.searchParams.get('id');
+      const data = await refresh(false);
+      const match = (data.matches || []).find(m => String(m.id) === String(seriesId));
+      if (!match) return sendJson(res, 404, { error: 'match_not_found' });
+      const matchIds = Array.from(new Set([...(match.matchIds || []), ...extractMatchIds(match.games || [])]));
+      const games = [];
+      for (const matchId of matchIds.slice(0, 5)) {
+        try { games.push({ ok: true, data: await fetchDota2Game(matchId) }); }
+        catch (err) { games.push({ ok: false, matchId, error: err.message }); }
+      }
+      const result = await aiService.analyzeOnce({ match, matchIds, games });
+      return sendJson(res, 200, result);
     }
     if (u.pathname === '/api/match-details') {
       const seriesId = u.searchParams.get('id');
