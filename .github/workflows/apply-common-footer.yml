@@ -1,0 +1,33 @@
+name: Apply common footer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-common-footer.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply shared footer
+        run: python3 scripts/patch-common-footer.py
+      - name: Validate
+        run: |
+          grep -q '/common-footer.js' public/index.html
+          grep -q '/common-footer.js' public/match.html
+          grep -q 'data-common-tech-support' public/index.html
+          grep -q '布尔信息科技(山东)有限公司' public/common-footer.js
+          grep -q 'https://buer.top' public/common-footer.js
+      - name: Commit result
+        run: |
+          rm -f .github/workflows/apply-common-footer.yml scripts/patch-common-footer.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Use shared technical support footer on all pages"
+          git push
