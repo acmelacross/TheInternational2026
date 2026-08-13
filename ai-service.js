@@ -7,7 +7,7 @@ const os = require('os');
 const { spawn } = require('child_process');
 
 const ANALYSIS_REVISION = 'team-intel-v1-20260813';
-const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-curl-v7-20260813' };
+const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-curl-v7-20260813', ernie:'ernie-format-v2-20260813' };
 function providerRevision(p){ return FORMAT_REVISIONS[p.id] || ANALYSIS_REVISION; }
 const KIMI_RESPONSE_FORMAT = {
   type:'json_schema',
@@ -144,6 +144,7 @@ function parseAnalysis(text) {
       };
     } catch (_) {}
   }
+  if (/^[{[]/.test(stripped)) throw new Error('模型返回的结构化 JSON 不完整，已避免展示原始 JSON');
   return { winnerLean: '', confidence: 0, scorePrediction: '', summary: raw.slice(0, 2200), keyReasons: [], watchPoints: [], risks: '', gamePredictions: [], playerForm: [], bpAnalysis: [], relationshipContext: [], dataGaps: ['模型未按结构化 JSON 返回，已保留原始摘要。'] };
 }
 function providerList() {
@@ -152,7 +153,7 @@ function providerList() {
     { id:'deepseek', name:'DeepSeek-V4-Pro', vendor:'DeepSeek', api:'chat', key:envFirst('DEEPSEEK_API_KEY'), model:envFirst('DEEPSEEK_MODEL')||'deepseek-v4-pro', baseUrl:cleanBase(envFirst('DEEPSEEK_BASE_URL')||'https://api.deepseek.com'), body:{ thinking:{type:'disabled'} } },
     { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:kimiBaseUrl(), timeoutMs:280000, body:{ reasoning_effort:'low', max_tokens:undefined } },
     { id:'doubao', name:'Doubao-Seed-2.1-Pro', vendor:'火山方舟', api:'responses', key:envFirst('DOUBAO_API_KEY','ARK_API_KEY'), model:envFirst('DOUBAO_MODEL')||'doubao-seed-2-1-pro-260628', baseUrl:cleanBase(envFirst('DOUBAO_BASE_URL')||'https://ark.cn-beijing.volces.com/api/v3'), body:{ thinking:{type:'disabled'} } },
-    { id:'ernie', name:'ERNIE 5.1', vendor:'百度千帆', api:'chat', key:envFirst('ERNIE_API_KEY','QIANFAN_API_KEY'), model:envFirst('ERNIE_MODEL')||'ernie-5.1', baseUrl:cleanBase(envFirst('ERNIE_BASE_URL')||'https://qianfan.baidubce.com/v2'), body:{} },
+    { id:'ernie', name:'ERNIE 5.1', vendor:'百度千帆', api:'chat', key:envFirst('ERNIE_API_KEY','QIANFAN_API_KEY'), model:envFirst('ERNIE_MODEL')||'ernie-5.1', baseUrl:cleanBase(envFirst('ERNIE_BASE_URL')||'https://qianfan.baidubce.com/v2'), body:{ max_tokens:8192 } },
     { id:'hy3', name:'Hy3', vendor:'腾讯云 TokenHub', api:'chat', key:envFirst('HY3_API_KEY','TENCENTMAAS_API_KEY'), model:envFirst('HY3_MODEL')||'hy3', baseUrl:cleanBase(envFirst('HY3_BASE_URL')||'https://tokenhub.tencentmaas.com/v1'), body:{ thinking:{type:'disabled'} } }
   ];
 }
@@ -253,7 +254,9 @@ function createAiService({ root, dataDir }) {
     let json=null; try{json=JSON.parse(raw)}catch(_){}
     if(!ok){const msg=json?.error?.message||json?.message||raw||`HTTP ${status}`;throw new Error(`${p.vendor} HTTP ${status}: ${redact(msg)}`)}
     const text=extractText(json); if(!text){const choice=json?.choices?.[0],msg=choice?.message;const finish=choice?.finish_reason||json?.status||'unknown';const shape={transport:p.id==='kimi'?'curl':'fetch',httpStatus:status,responseType,rawLength:raw.length,topKeys:json&&typeof json==='object'?Object.keys(json).slice(0,12):[],choiceCount:Array.isArray(json?.choices)?json.choices.length:null,choiceKeys:choice&&typeof choice==='object'?Object.keys(choice).slice(0,12):[],messageKeys:msg&&typeof msg==='object'?Object.keys(msg).slice(0,12):[],contentType:Array.isArray(msg?.content)?'array':typeof msg?.content,contentLength:typeof msg?.content==='string'?msg.content.length:null,reasoningLength:typeof msg?.reasoning_content==='string'?msg.reasoning_content.length:null};throw new Error(`${p.vendor} 返回成功但没有最终文本内容（finish_reason=${finish}；响应结构=${redact(JSON.stringify(shape))}）`);}
-    return {text,usage:json?.usage||null};
+    const finishReason=json?.choices?.[0]?.finish_reason||json?.finish_reason||null;
+    if(finishReason==='length'){throw new Error(`${p.vendor} 输出达到长度上限，结构化 JSON 被截断`);}
+    return {text,usage:json?.usage||null,finishReason};
   }
   function compactGame(g,index){
     if(!g?.ok||!g.data)return{game:index+1,ok:false,matchId:g?.matchId||null,error:g?.error||'无逐局数据'};
