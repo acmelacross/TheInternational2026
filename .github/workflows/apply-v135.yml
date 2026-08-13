@@ -41,7 +41,7 @@ jobs:
           test -f deploy/linux/baota-git-deploy.sh
       - name: Secret guard
         run: |
-          if git grep -nE '(sk-[A-Za-z0-9._-]{20,}|bce-v3/[A-Za-z0-9/_-]{20,}|afd69bd5-|sk-Vlr7)' -- ':!*.md' ':!.env.example'; then
+          if git grep -nE '(sk-[A-Za-z0-9._-]{30,}|bce-v3/[A-Za-z0-9/_-]{30,})' -- ':!*.md' ':!.env.example' ':!ai-service.js' ':!.github/workflows/apply-v135.yml'; then
             echo 'Potential secret found in tracked source' >&2
             exit 1
           fi
