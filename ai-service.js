@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ANALYSIS_REVISION = 'team-intel-v1-20260813';
-const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-output-v2-20260813' };
+const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-json-v3-20260813' };
 function providerRevision(p){ return FORMAT_REVISIONS[p.id] || ANALYSIS_REVISION; }
 
 function cleanBase(v) { return String(v || '').replace(/\/+$/, ''); }
@@ -103,7 +103,7 @@ function providerList() {
   return [
     { id:'qwen', name:'Qwen3.8-Max', vendor:'阿里云百炼', api:'chat', key:envFirst('QWEN_API_KEY','DASHSCOPE_API_KEY'), model:envFirst('QWEN_MODEL')||'qwen3.8-max', baseUrl:cleanBase(envFirst('QWEN_BASE_URL')||'https://dashscope.aliyuncs.com/compatible-mode/v1'), body:{ reasoning_effort:'medium', response_format:{type:'json_object'}, max_tokens:undefined } },
     { id:'deepseek', name:'DeepSeek-V4-Pro', vendor:'DeepSeek', api:'chat', key:envFirst('DEEPSEEK_API_KEY'), model:envFirst('DEEPSEEK_MODEL')||'deepseek-v4-pro', baseUrl:cleanBase(envFirst('DEEPSEEK_BASE_URL')||'https://api.deepseek.com'), body:{ thinking:{type:'disabled'} } },
-    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:cleanBase(envFirst('KIMI_BASE_URL')||'https://api.moonshot.cn/v1'), body:{ reasoning_effort:'low', max_tokens:undefined } },
+    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:cleanBase(envFirst('KIMI_BASE_URL')||'https://api.moonshot.cn/v1'), timeoutMs:280000, body:{ reasoning_effort:'low', response_format:{type:'json_object'}, max_tokens:undefined, max_completion_tokens:16384 } },
     { id:'doubao', name:'Doubao-Seed-2.1-Pro', vendor:'火山方舟', api:'responses', key:envFirst('DOUBAO_API_KEY','ARK_API_KEY'), model:envFirst('DOUBAO_MODEL')||'doubao-seed-2-1-pro-260628', baseUrl:cleanBase(envFirst('DOUBAO_BASE_URL')||'https://ark.cn-beijing.volces.com/api/v3'), body:{ thinking:{type:'disabled'} } },
     { id:'ernie', name:'ERNIE 5.1', vendor:'百度千帆', api:'chat', key:envFirst('ERNIE_API_KEY','QIANFAN_API_KEY'), model:envFirst('ERNIE_MODEL')||'ernie-5.1', baseUrl:cleanBase(envFirst('ERNIE_BASE_URL')||'https://qianfan.baidubce.com/v2'), body:{} },
     { id:'hy3', name:'Hy3', vendor:'腾讯云 TokenHub', api:'chat', key:envFirst('HY3_API_KEY','TENCENTMAAS_API_KEY'), model:envFirst('HY3_MODEL')||'hy3', baseUrl:cleanBase(envFirst('HY3_BASE_URL')||'https://tokenhub.tencentmaas.com/v1'), body:{ thinking:{type:'disabled'} } }
@@ -141,7 +141,7 @@ function createAiService({ root, dataDir }) {
       url=`${p.baseUrl}/chat/completions`;
       body={model:p.model,messages:[{role:'system',content:'你是专业 Dota 2 赛事分析师。只使用用户提供的赛程、逐局数据和“已核验公开背景”进行判断。绝对不要虚构选手近况、私人关系、冲突、友谊、采访或历史事件。没有可靠数据必须明确写“暂无可靠公开资料/数据不足”。输出中文 JSON，不要 Markdown。'},{role:'user',content:prompt}],stream:false,max_tokens:2200,...p.body};
     }
-    const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(120000)});
+    const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(p.timeoutMs||120000)});
     const raw=await res.text(); let json=null; try{json=JSON.parse(raw)}catch(_){}
     if(!res.ok){const msg=json?.error?.message||json?.message||raw||`HTTP ${res.status}`;throw new Error(`${p.vendor} HTTP ${res.status}: ${redact(msg)}`)}
     const text=extractText(json); if(!text){const finish=json?.choices?.[0]?.finish_reason||json?.status||'unknown';const hasReasoning=Boolean(json?.choices?.[0]?.message?.reasoning_content);throw new Error(`${p.vendor} 返回成功但没有最终文本内容（finish_reason=${finish}${hasReasoning?'，存在 reasoning_content':''}）`);}
