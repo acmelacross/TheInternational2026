@@ -33,3 +33,4 @@ jobs:
           git add -A
           git commit -m "Make match cards open details on full-card click"
           git push
+# retry-after-script-fix
