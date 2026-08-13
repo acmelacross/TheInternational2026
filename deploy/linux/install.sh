@@ -25,10 +25,22 @@ mkdir -p "$APP_DIR" "$APP_DIR/cache" "$DATA_DIR"
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete --exclude='.env' --exclude='cache/' --exclude='deploy/' "$PROJECT_DIR/" "$APP_DIR/"
 else
+  ENV_BACKUP=""
+  if [[ -f "$APP_DIR/.env" ]]; then
+    ENV_BACKUP="$(mktemp)"
+    cp "$APP_DIR/.env" "$ENV_BACKUP"
+  fi
+
   find "$APP_DIR" -mindepth 1 -maxdepth 1 ! -name '.env' ! -name 'cache' -exec rm -rf {} +
   cp -a "$PROJECT_DIR"/. "$APP_DIR"/
   rm -rf "$APP_DIR/deploy"
-  rm -f "$APP_DIR/.env"
+
+  if [[ -n "$ENV_BACKUP" && -f "$ENV_BACKUP" ]]; then
+    cp "$ENV_BACKUP" "$APP_DIR/.env"
+    rm -f "$ENV_BACKUP"
+  elif [[ ! -f "$PROJECT_DIR/.env" ]]; then
+    rm -f "$APP_DIR/.env"
+  fi
 fi
 
 # 首次安装：如果源码目录已有真实 .env，则优先复制；否则才使用模板。
@@ -43,10 +55,15 @@ if [[ ! -f "$APP_DIR/.env" ]]; then
   chmod 600 "$APP_DIR/.env"
 fi
 
+# v1.3.8：首次升级时把旧源码目录 cache 迁移到独立持久目录。
+# 后续 git pull / 重装代码不会删除 DATA_DIR。
 if [[ -d "$APP_DIR/cache" && -z "$(find "$DATA_DIR" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
   cp -a "$APP_DIR/cache"/. "$DATA_DIR"/ 2>/dev/null || true
 fi
-if ! grep -q '^DATA_DIR=' "$APP_DIR/.env" 2>/dev/null; then echo "DATA_DIR=$DATA_DIR" >> "$APP_DIR/.env"; fi
+if ! grep -q '^DATA_DIR=' "$APP_DIR/.env" 2>/dev/null; then
+  echo "DATA_DIR=$DATA_DIR" >> "$APP_DIR/.env"
+fi
+
 chown -R ti2026:ti2026 "$APP_DIR" "$DATA_DIR"
 chmod 750 "$APP_DIR"
 chmod 700 "$APP_DIR/cache" "$DATA_DIR"
@@ -55,12 +72,15 @@ chmod 600 "$APP_DIR/.env" || true
 sed "s|__NODE_BIN__|$NODE_BIN|g" "$PROJECT_DIR/deploy/systemd/ti2026-guide.service" > "/etc/systemd/system/${SERVICE_NAME}.service"
 systemctl daemon-reload
 systemctl enable --now "$SERVICE_NAME"
+systemctl restart "$SERVICE_NAME"
 
 sleep 1
 echo
 systemctl --no-pager --full status "$SERVICE_NAME" || true
 echo
 echo "安装完成。"
+echo "运行目录: $APP_DIR"
+echo "持久缓存: $DATA_DIR"
 echo "本机访问: http://127.0.0.1:17826"
 echo "健康检查: curl http://127.0.0.1:17826/api/health"
-echo "Nginx 模板: $PROJECT_DIR/deploy/nginx/ti2026-guide.conf"
+echo "Nginx 模板: $PROJECT_DIR/deploy/nginx/ti2026.buer.top.conf"
