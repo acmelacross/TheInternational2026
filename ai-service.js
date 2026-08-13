@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ANALYSIS_REVISION = 'team-intel-v1-20260813';
-const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-global-v5-20260813' };
+const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-plain-v6-20260813' };
 function providerRevision(p){ return FORMAT_REVISIONS[p.id] || ANALYSIS_REVISION; }
 const KIMI_RESPONSE_FORMAT = {
   type:'json_schema',
@@ -148,7 +148,7 @@ function providerList() {
   return [
     { id:'qwen', name:'Qwen3.8-Max', vendor:'阿里云百炼', api:'chat', key:envFirst('QWEN_API_KEY','DASHSCOPE_API_KEY'), model:envFirst('QWEN_MODEL')||'qwen3.8-max', baseUrl:cleanBase(envFirst('QWEN_BASE_URL')||'https://dashscope.aliyuncs.com/compatible-mode/v1'), body:{ reasoning_effort:'medium', response_format:{type:'json_object'}, max_tokens:undefined } },
     { id:'deepseek', name:'DeepSeek-V4-Pro', vendor:'DeepSeek', api:'chat', key:envFirst('DEEPSEEK_API_KEY'), model:envFirst('DEEPSEEK_MODEL')||'deepseek-v4-pro', baseUrl:cleanBase(envFirst('DEEPSEEK_BASE_URL')||'https://api.deepseek.com'), body:{ thinking:{type:'disabled'} } },
-    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:kimiBaseUrl(), timeoutMs:280000, body:{ reasoning_effort:'low', response_format:KIMI_RESPONSE_FORMAT, max_tokens:undefined } },
+    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:kimiBaseUrl(), timeoutMs:280000, body:{ reasoning_effort:'low', max_tokens:undefined } },
     { id:'doubao', name:'Doubao-Seed-2.1-Pro', vendor:'火山方舟', api:'responses', key:envFirst('DOUBAO_API_KEY','ARK_API_KEY'), model:envFirst('DOUBAO_MODEL')||'doubao-seed-2-1-pro-260628', baseUrl:cleanBase(envFirst('DOUBAO_BASE_URL')||'https://ark.cn-beijing.volces.com/api/v3'), body:{ thinking:{type:'disabled'} } },
     { id:'ernie', name:'ERNIE 5.1', vendor:'百度千帆', api:'chat', key:envFirst('ERNIE_API_KEY','QIANFAN_API_KEY'), model:envFirst('ERNIE_MODEL')||'ernie-5.1', baseUrl:cleanBase(envFirst('ERNIE_BASE_URL')||'https://qianfan.baidubce.com/v2'), body:{} },
     { id:'hy3', name:'Hy3', vendor:'腾讯云 TokenHub', api:'chat', key:envFirst('HY3_API_KEY','TENCENTMAAS_API_KEY'), model:envFirst('HY3_MODEL')||'hy3', baseUrl:cleanBase(envFirst('HY3_BASE_URL')||'https://tokenhub.tencentmaas.com/v1'), body:{ thinking:{type:'disabled'} } }
