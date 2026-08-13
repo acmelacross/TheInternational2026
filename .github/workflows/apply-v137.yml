@@ -1,0 +1,53 @@
+name: Apply TI2026 v1.3.7
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-v137.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Snapshot user team logos
+        run: find public/assets -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/logos.before
+      - name: Apply v1.3.7
+        run: node scripts/apply-v137.js
+      - name: Verify logos unchanged
+        run: |
+          find public/assets -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/logos.after
+          diff -u /tmp/logos.before /tmp/logos.after
+      - name: Validate
+        run: |
+          node --check server.js
+          node --check ai-service.js
+          node --check public/app.js
+          node --check public/match.js
+          node --check public/ai-analysis.js
+          node tests.js
+          grep -q '^1.3.7$' VERSION
+          grep -q 'QWEN_MODEL=qwen3.8-max' .env.example
+          grep -q 'DOUBAO_MODEL=doubao-seed-2-1-pro-260628' .env.example
+          grep -q "qwen3.8-max'" ai-service.js
+          grep -q "doubao-seed-2-1-pro-260628'" ai-service.js
+          ! grep -q 'qwen3.8-max-preview' .env.example
+          ! grep -q 'DOUBAO_MODEL=doubao-seed-2.1-pro$' .env.example
+      - name: Remove one-time upgrade files
+        run: |
+          rm -f scripts/apply-v137.js
+          rm -f .github/workflows/apply-v137.yml
+      - name: Commit v1.3.7
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update TI2026 viewing guide to v1.3.7"
+          git push
