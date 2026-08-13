@@ -19,7 +19,18 @@ jobs:
           node-version: '20'
       - name: Snapshot user team logos
         run: find public/assets/teams-normal -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/logos.before || true
-      - name: Apply v1.3.8
+      - name: Skip obsolete frontend patch block
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/apply-v138.js')
+          s=p.read_text()
+          start=s.index("rw('public/ai-analysis.js'")
+          end=s.index("\nrw('.env.example'", start)
+          replacement="if(!fs.readFileSync('public/ai-analysis.js','utf8').includes('/api/ai/cache')) throw new Error('cache-first frontend missing');\n\n"
+          p.write_text(s[:start]+replacement+s[end:])
+          PY
+      - name: Apply v1.3.8 backend and persistent cache changes
         run: node scripts/apply-v138.js
       - name: Verify logos unchanged
         run: |
@@ -35,6 +46,7 @@ jobs:
           test "$(cat VERSION)" = "1.3.8"
           grep -q '/api/ai/cache' server.js
           grep -q 'DATA_DIR=/var/lib/ti2026-guide' .env.example
+          grep -q '/var/lib/ti2026-guide' deploy/systemd/ti2026-guide.service
       - name: Remove one-time files
         run: |
           rm -f scripts/apply-v138.js
