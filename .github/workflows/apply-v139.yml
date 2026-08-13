@@ -1,0 +1,48 @@
+name: Apply TI2026 v1.3.9
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-v139.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Snapshot user team logos
+        run: find public/assets/teams-normal -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/logos.before || true
+      - name: Apply v1.3.9
+        run: node scripts/apply-v139.js
+      - name: Verify logos unchanged
+        run: |
+          find public/assets/teams-normal -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/logos.after || true
+          diff -u /tmp/logos.before /tmp/logos.after
+      - name: Validate JS and tests
+        run: |
+          node --check server.js
+          node --check ai-service.js
+          node --check public/ai-analysis.js
+          node tests.js
+          test "$(cat VERSION)" = "1.3.9"
+          grep -q 'AUTO_REFRESH_INTERVAL_SECONDS=3600' .env.example
+          grep -q "response_format:{type:'json_object'}" ai-service.js
+          grep -q 'providerRevision' ai-service.js
+      - name: Remove one-time files
+        run: |
+          rm -f scripts/apply-v139.js
+          rm -f .github/workflows/apply-v139.yml
+      - name: Commit v1.3.9
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update TI2026 viewing guide to v1.3.9"
+          git push
