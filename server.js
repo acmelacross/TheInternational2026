@@ -15,7 +15,8 @@ const CACHE_PATH = path.join(DATA_DIR, 'ti2026.json');
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT || 17826);
-const CACHE_TTL_MS = Math.max(60, Number(process.env.CACHE_TTL_SECONDS || 300)) * 1000;
+const AUTO_REFRESH_INTERVAL_MS = Math.max(3600, Number(process.env.AUTO_REFRESH_INTERVAL_SECONDS || 3600)) * 1000;
+const CACHE_TTL_MS = Math.max(AUTO_REFRESH_INTERVAL_MS, Math.max(60, Number(process.env.CACHE_TTL_SECONDS || 3600)) * 1000);
 const LIQUIPEDIA_API_KEY = (process.env.LIQUIPEDIA_API_KEY || '').trim();
 const PUBLIC_FALLBACK_ENABLED = String(process.env.PUBLIC_FALLBACK_ENABLED || 'true').toLowerCase() !== 'false';
 const APP_NAME = process.env.APP_NAME || 'TI2026-Viewing-Guide';
@@ -564,7 +565,7 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
     if (u.pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.8', dataDir: DATA_DIR, liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
+      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.9', dataDir: DATA_DIR, autoRefreshSeconds: Math.round(AUTO_REFRESH_INTERVAL_MS/1000), liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
     }
     if (u.pathname === '/api/ti2026') {
       const data = await refresh(false);
@@ -640,6 +641,9 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`TI2026 观赛指南已启动: http://127.0.0.1:${PORT}`);
   console.log(`Liquipedia API Key: ${LIQUIPEDIA_API_KEY ? '已配置' : '未配置（当前使用降级模式）'}`);
+  console.log(`赛程自动同步: 每 ${Math.round(AUTO_REFRESH_INTERVAL_MS/60000)} 分钟`);
+  setTimeout(() => refresh(false).catch(err => console.error('[startup-refresh]', err)), 2000).unref();
+  setInterval(() => refresh(true).then(d => console.log('[auto-refresh]', d.generatedAt, d.source)).catch(err => console.error('[auto-refresh]', err)), AUTO_REFRESH_INTERVAL_MS).unref();
 });
 
 module.exports = {

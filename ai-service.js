@@ -5,6 +5,8 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ANALYSIS_REVISION = 'team-intel-v1-20260813';
+const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-output-v2-20260813' };
+function providerRevision(p){ return FORMAT_REVISIONS[p.id] || ANALYSIS_REVISION; }
 
 function cleanBase(v) { return String(v || '').replace(/\/+$/, ''); }
 function envFirst(...names) {
@@ -24,23 +26,49 @@ function redact(text) {
 }
 function arr(v, max = 8) { return Array.isArray(v) ? v.map(String).filter(Boolean).slice(0, max) : []; }
 function extractText(json) {
-  const c = json?.choices?.[0]?.message?.content;
-  if (typeof c === 'string') return c;
-  if (Array.isArray(c)) return c.map(x => x?.text || x?.content || '').join('\n').trim();
-  if (typeof json?.output_text === 'string') return json.output_text;
-  if (Array.isArray(json?.output)) {
-    return json.output.flatMap(item => Array.isArray(item?.content) ? item.content : [])
-      .map(x => x?.text || x?.content || '').filter(Boolean).join('\n').trim();
+  const msg = json?.choices?.[0]?.message;
+  const c = msg?.content;
+  if (typeof c === 'string' && c.trim()) return c.trim();
+  if (Array.isArray(c)) {
+    const joined=c.map(x => {
+      if(typeof x==='string')return x;
+      if(typeof x?.text==='string')return x.text;
+      if(typeof x?.content==='string')return x.content;
+      if(typeof x?.text?.value==='string')return x.text.value;
+      return '';
+    }).filter(Boolean).join('\n').trim();
+    if(joined)return joined;
   }
-  if (typeof json?.result === 'string') return json.result;
+  if (typeof msg?.output_text === 'string' && msg.output_text.trim()) return msg.output_text.trim();
+  if (typeof json?.choices?.[0]?.text === 'string' && json.choices[0].text.trim()) return json.choices[0].text.trim();
+  if (typeof json?.output_text === 'string' && json.output_text.trim()) return json.output_text.trim();
+  if (Array.isArray(json?.output)) {
+    const joined=json.output.flatMap(item => Array.isArray(item?.content) ? item.content : [])
+      .map(x => typeof x==='string'?x:(x?.text?.value || x?.text || x?.content || '')).filter(Boolean).join('\n').trim();
+    if(joined)return joined;
+  }
+  if (typeof json?.result === 'string' && json.result.trim()) return json.result.trim();
+  return '';
+}
+function extractBalancedJsonObject(raw){
+  let start=-1,depth=0,inString=false,escape=false;
+  for(let i=0;i<raw.length;i++){
+    const ch=raw[i];
+    if(start<0){if(ch==='{'){start=i;depth=1;}continue;}
+    if(inString){if(escape){escape=false;continue;}if(ch==='\\'){escape=true;continue;}if(ch==='"')inString=false;continue;}
+    if(ch==='"'){inString=true;continue;}
+    if(ch==='{')depth++;else if(ch==='}'&&--depth===0)return raw.slice(start,i+1);
+  }
   return '';
 }
 function parseAnalysis(text) {
   const raw = String(text || '').trim();
   if (!raw) return null;
-  const candidates = [raw, raw.replace(/^```(?:json)?\s*/i, '').replace(/```$/i, '').trim()];
-  const objMatch = raw.match(/\{[\s\S]*\}/);
-  if (objMatch) candidates.push(objMatch[0]);
+  const stripped=raw.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  const candidates = [raw, stripped];
+  const balanced=extractBalancedJsonObject(stripped);
+  if(balanced)candidates.push(balanced);
+  try{const once=JSON.parse(stripped);if(typeof once==='string')candidates.push(once);}catch(_){}
   for (const c of candidates) {
     try {
       const j = JSON.parse(c);
@@ -73,9 +101,9 @@ function parseAnalysis(text) {
 }
 function providerList() {
   return [
-    { id:'qwen', name:'Qwen3.8-Max', vendor:'阿里云百炼', api:'chat', key:envFirst('QWEN_API_KEY','DASHSCOPE_API_KEY'), model:envFirst('QWEN_MODEL')||'qwen3.8-max', baseUrl:cleanBase(envFirst('QWEN_BASE_URL')||'https://dashscope.aliyuncs.com/compatible-mode/v1'), body:{ reasoning_effort:'medium' } },
+    { id:'qwen', name:'Qwen3.8-Max', vendor:'阿里云百炼', api:'chat', key:envFirst('QWEN_API_KEY','DASHSCOPE_API_KEY'), model:envFirst('QWEN_MODEL')||'qwen3.8-max', baseUrl:cleanBase(envFirst('QWEN_BASE_URL')||'https://dashscope.aliyuncs.com/compatible-mode/v1'), body:{ reasoning_effort:'medium', response_format:{type:'json_object'}, max_tokens:undefined } },
     { id:'deepseek', name:'DeepSeek-V4-Pro', vendor:'DeepSeek', api:'chat', key:envFirst('DEEPSEEK_API_KEY'), model:envFirst('DEEPSEEK_MODEL')||'deepseek-v4-pro', baseUrl:cleanBase(envFirst('DEEPSEEK_BASE_URL')||'https://api.deepseek.com'), body:{ thinking:{type:'disabled'} } },
-    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:cleanBase(envFirst('KIMI_BASE_URL')||'https://api.moonshot.cn/v1'), body:{ reasoning_effort:'low' } },
+    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:cleanBase(envFirst('KIMI_BASE_URL')||'https://api.moonshot.cn/v1'), body:{ reasoning_effort:'low', max_tokens:undefined } },
     { id:'doubao', name:'Doubao-Seed-2.1-Pro', vendor:'火山方舟', api:'responses', key:envFirst('DOUBAO_API_KEY','ARK_API_KEY'), model:envFirst('DOUBAO_MODEL')||'doubao-seed-2-1-pro-260628', baseUrl:cleanBase(envFirst('DOUBAO_BASE_URL')||'https://ark.cn-beijing.volces.com/api/v3'), body:{ thinking:{type:'disabled'} } },
     { id:'ernie', name:'ERNIE 5.1', vendor:'百度千帆', api:'chat', key:envFirst('ERNIE_API_KEY','QIANFAN_API_KEY'), model:envFirst('ERNIE_MODEL')||'ernie-5.1', baseUrl:cleanBase(envFirst('ERNIE_BASE_URL')||'https://qianfan.baidubce.com/v2'), body:{} },
     { id:'hy3', name:'Hy3', vendor:'腾讯云 TokenHub', api:'chat', key:envFirst('HY3_API_KEY','TENCENTMAAS_API_KEY'), model:envFirst('HY3_MODEL')||'hy3', baseUrl:cleanBase(envFirst('HY3_BASE_URL')||'https://tokenhub.tencentmaas.com/v1'), body:{ thinking:{type:'disabled'} } }
@@ -116,7 +144,7 @@ function createAiService({ root, dataDir }) {
     const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(120000)});
     const raw=await res.text(); let json=null; try{json=JSON.parse(raw)}catch(_){}
     if(!res.ok){const msg=json?.error?.message||json?.message||raw||`HTTP ${res.status}`;throw new Error(`${p.vendor} HTTP ${res.status}: ${redact(msg)}`)}
-    const text=extractText(json); if(!text) throw new Error(`${p.vendor} 返回成功但没有可显示的文本内容`);
+    const text=extractText(json); if(!text){const finish=json?.choices?.[0]?.finish_reason||json?.status||'unknown';const hasReasoning=Boolean(json?.choices?.[0]?.message?.reasoning_content);throw new Error(`${p.vendor} 返回成功但没有最终文本内容（finish_reason=${finish}${hasReasoning?'，存在 reasoning_content':''}）`);}
     return {text,usage:json?.usage||null};
   }
   function compactGame(g,index){
@@ -153,22 +181,22 @@ function createAiService({ root, dataDir }) {
     if(!latest)return{found:false,complete:false,seriesId:id,models:[],aggregate:null};
     const models=providers.map(p=>{
       const c=latest.models?.[p.id];
-      if(c&&c.model===p.model&&c.analysisRevision===ANALYSIS_REVISION)return{...c,cached:true,configured:Boolean(p.key)};
+      if(c&&c.model===p.model&&c.analysisRevision===providerRevision(p))return{...c,cached:true,configured:Boolean(p.key)};
       return{id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:p.key?'untested':'unconfigured',connected:false,cached:false,configured:Boolean(p.key),error:p.key?null:'未配置 API Key'};
     });
     const configured=providers.filter(p=>p.key);
-    const complete=configured.every(p=>latest.models?.[p.id]?.model===p.model&&latest.models?.[p.id]?.analysisRevision===ANALYSIS_REVISION);
-    return{found:true,complete,seriesId:id,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,models,aggregate:aggregate(latest.models||{},match||{}),analysisRevision:ANALYSIS_REVISION,policy:'本地缓存优先；旧分析版本会在新情报管线启用后仅重算一次，随后永久读取持久缓存。'};
+    const complete=configured.every(p=>latest.models?.[p.id]?.model===p.model&&latest.models?.[p.id]?.analysisRevision===providerRevision(p));
+    return{found:true,complete,seriesId:id,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,models,aggregate:aggregate(latest.models||{},match||{}),analysisRevision:ANALYSIS_REVISION,policy:'服务器本地缓存优先；同一场系列赛、同一模型、同一分析版本全站只调用一次。所有访客共享服务器缓存。'};
   }
   async function analyzeOnce(context){
     const seriesId=String(context?.match?.id||'').trim(); if(!seriesId)throw new Error('missing_series_id'); if(inFlight.has(seriesId))return inFlight.get(seriesId);
     const promise=(async()=>{
       const file=cachePath(seriesId),existing=readJson(file,{seriesId,generatedAt:null,models:{}});existing.models||={};const providers=providerList(),prompt=buildPrompt(context);
-      const tasks=providers.filter(p=>p.key&&(!existing.models[p.id]||existing.models[p.id].model!==p.model||existing.models[p.id].analysisRevision!==ANALYSIS_REVISION)).map(p=>async()=>{const startedAt=new Date().toISOString();try{const out=await doFetch(p,prompt),analysis=parseAnalysis(out.text),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:ANALYSIS_REVISION,status:'ok',connected:true,cached:false,startedAt,finishedAt:new Date().toISOString(),analysis,rawText:analysis?.summary?null:out.text.slice(0,2200),usage:out.usage};existing.models[p.id]=result;updateStatus(p,{state:'connected',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason:'调用成功'})}catch(err){const reason=redact(err.message),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:ANALYSIS_REVISION,status:'error',connected:false,cached:false,startedAt,finishedAt:new Date().toISOString(),error:reason};existing.models[p.id]=result;updateStatus(p,{state:'failed',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason})}existing.generatedAt=existing.generatedAt||new Date().toISOString();existing.updatedAt=new Date().toISOString();writeJson(file,existing)});
+      const tasks=providers.filter(p=>p.key&&(!existing.models[p.id]||existing.models[p.id].model!==p.model||existing.models[p.id].analysisRevision!==providerRevision(p))).map(p=>async()=>{const startedAt=new Date().toISOString();try{const out=await doFetch(p,prompt),analysis=parseAnalysis(out.text),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:providerRevision(p),status:'ok',connected:true,cached:false,startedAt,finishedAt:new Date().toISOString(),analysis,rawText:analysis?.summary?null:out.text.slice(0,2200),usage:out.usage};existing.models[p.id]=result;updateStatus(p,{state:'connected',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason:'调用成功'})}catch(err){const reason=redact(err.message),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:providerRevision(p),status:'error',connected:false,cached:false,startedAt,finishedAt:new Date().toISOString(),error:reason};existing.models[p.id]=result;updateStatus(p,{state:'failed',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason})}existing.generatedAt=existing.generatedAt||new Date().toISOString();existing.updatedAt=new Date().toISOString();writeJson(file,existing)});
       let cursor=0;const workers=Array.from({length:Math.min(2,tasks.length)},async()=>{while(cursor<tasks.length){const task=tasks[cursor++];await task()}});await Promise.all(workers);
       const latest=readJson(file,existing);latest.generatedAt||=new Date().toISOString();latest.updatedAt=new Date().toISOString();latest.aggregate=aggregate(latest.models,context.match);writeJson(file,latest);
       const lastStatus=readStatus();const publicModels=providers.map(p=>{const cached=latest.models[p.id];if(cached)return{...cached,cached:true,configured:true};return{id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:p.key?'untested':'unconfigured',connected:false,cached:false,configured:Boolean(p.key),error:p.key?null:'未配置 API Key',lastStatus:publicProvider(p,lastStatus[p.id])}});
-      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`${cacheDir}/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,analysisRevision:ANALYSIS_REVISION,policy:'缓存优先：每个模型在当前分析版本下每个系列赛最多调用一次；单次调用同时生成系列赛、逐局、选手状态、BP 与已核验公开关系背景分析。成功或失败均写入持久化本地缓存，刷新页面和重新部署不会重复调用。'};
+      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`${cacheDir}/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,analysisRevision:ANALYSIS_REVISION,policy:'服务器全局缓存：同一场系列赛 × 同一模型 × 同一分析版本，全站最多调用一次；所有访客共享 /var/lib/ti2026-guide 的持久缓存，刷新页面、多人访问和重新部署均不会重复消耗 Token。'};
     })().finally(()=>inFlight.delete(seriesId));inFlight.set(seriesId,promise);return promise;
   }
   return{getStatus,getCachedAnalysis,analyzeOnce,configuredCount};
