@@ -1,0 +1,61 @@
+name: Fix Kimi K3 China plain chat
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-kimi-k3-plain-chat.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Patch Kimi K3 to plain Chat Completions
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('ai-service.js')
+          s = p.read_text(encoding='utf-8')
+
+          old_rev = "kimi:'kimi-k3-global-v5-20260813'"
+          new_rev = "kimi:'kimi-k3-plain-v6-20260813'"
+          if old_rev not in s:
+              raise SystemExit('Kimi v5 revision marker not found')
+          s = s.replace(old_rev, new_rev, 1)
+
+          old_provider = "{ id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:kimiBaseUrl(), timeoutMs:280000, body:{ reasoning_effort:'low', response_format:KIMI_RESPONSE_FORMAT, max_tokens:undefined } },"
+          new_provider = "{ id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:kimiBaseUrl(), timeoutMs:280000, body:{ reasoning_effort:'low', max_tokens:undefined } },"
+          if old_provider not in s:
+              raise SystemExit('Kimi structured-output provider marker not found')
+          s = s.replace(old_provider, new_provider, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check ai-service.js
+          grep -q "kimi-k3-plain-v6-20260813" ai-service.js
+          grep -q "baseUrl:kimiBaseUrl()" ai-service.js
+          grep -q "body:{ reasoning_effort:'low', max_tokens:undefined }" ai-service.js
+          ! grep -q "response_format:KIMI_RESPONSE_FORMAT" ai-service.js
+          grep -q "https://api.moonshot.cn/v1" ai-service.js
+
+      - name: Remove one-time workflow and commit
+        shell: bash
+        run: |
+          rm -f .github/workflows/fix-kimi-k3-plain-chat.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix Kimi K3 China plain chat output"
+          git push
