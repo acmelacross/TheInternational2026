@@ -1,0 +1,36 @@
+name: Fix ERNIE 5.1 format
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-ernie-format-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply patch
+        run: python3 scripts/patch-ernie-format-v2.py
+      - name: Validate
+        run: |
+          node --check ai-service.js
+          grep -q "ernie-format-v2-20260813" ai-service.js
+          grep -q "body:{ max_tokens:8192 }" ai-service.js
+          grep -q "输出达到长度上限" ai-service.js
+          grep -q "结构化 JSON 不完整" ai-service.js
+      - name: Commit result
+        run: |
+          rm -f .github/workflows/fix-ernie-format-v2.yml scripts/patch-ernie-format-v2.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix ERNIE 5.1 structured analysis output"
+          git push
