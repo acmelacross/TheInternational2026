@@ -3,13 +3,16 @@ const fs = require('fs');
 const path = require('path');
 const { URL, URLSearchParams } = require('url');
 const { createAiService } = require('./ai-service');
+const { createTeamIntelService } = require('./team-intel-service');
 
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const SEED_PATH = path.join(ROOT, 'data', 'seed.json');
-const CACHE_PATH = path.join(ROOT, 'cache', 'ti2026.json');
 
 loadDotEnv(path.join(ROOT, '.env'));
+const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(ROOT, 'cache'));
+const CACHE_PATH = path.join(DATA_DIR, 'ti2026.json');
+fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT || 17826);
 const CACHE_TTL_MS = Math.max(60, Number(process.env.CACHE_TTL_SECONDS || 300)) * 1000;
@@ -24,7 +27,8 @@ const GAME_DETAIL_TTL_MS = Math.max(60, Number(process.env.GAME_DETAIL_TTL_SECON
 const gameDetailCache = new Map();
 
 const seed = JSON.parse(fs.readFileSync(SEED_PATH, 'utf8'));
-const aiService = createAiService({ root: ROOT });
+const aiService = createAiService({ root: ROOT, dataDir: DATA_DIR });
+const teamIntelService = createTeamIntelService({ root: ROOT, dataDir: DATA_DIR });
 
 const TEAM_NAME_ALIASES = new Map([
   ['1wteam', 'Iron Wing'], ['1winteam', 'Iron Wing'], ['tundraesports', 'Iron Wing'],
@@ -560,7 +564,7 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
     if (u.pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.5', liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
+      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.8', dataDir: DATA_DIR, liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
     }
     if (u.pathname === '/api/ti2026') {
       const data = await refresh(false);
@@ -569,6 +573,12 @@ const server = http.createServer(async (req, res) => {
     if (u.pathname === '/api/ai/status') {
       const seriesId = u.searchParams.get('id');
       return sendJson(res, 200, aiService.getStatus(seriesId));
+    }
+    if (u.pathname === '/api/ai/cache') {
+      const seriesId = u.searchParams.get('id');
+      const data = await refresh(false);
+      const match = (data.matches || []).find(m => String(m.id) === String(seriesId));
+      return sendJson(res, 200, aiService.getCachedAnalysis(seriesId, match || null));
     }
     if (u.pathname === '/api/ai/analysis' && (req.method === 'POST' || req.method === 'GET')) {
       const seriesId = u.searchParams.get('id');
@@ -581,8 +591,16 @@ const server = http.createServer(async (req, res) => {
         try { games.push({ ok: true, data: await fetchDota2Game(matchId) }); }
         catch (err) { games.push({ ok: false, matchId, error: err.message }); }
       }
-      const result = await aiService.analyzeOnce({ match, matchIds, games });
+      const teamIntel = await teamIntelService.getMatchIntel(match).catch(err => ({ error: err.message, teams: [] }));
+      const result = await aiService.analyzeOnce({ match, matchIds, games, teamIntel });
       return sendJson(res, 200, result);
+    }
+    if (u.pathname === '/api/team-intel') {
+      const seriesId = u.searchParams.get('id');
+      const data = await refresh(false);
+      const match = (data.matches || []).find(m => String(m.id) === String(seriesId));
+      if (!match) return sendJson(res, 404, { error: 'match_not_found' });
+      return sendJson(res, 200, await teamIntelService.getMatchIntel(match));
     }
     if (u.pathname === '/api/match-details') {
       const seriesId = u.searchParams.get('id');

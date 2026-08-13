@@ -18,7 +18,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
 ProtectHome=true
-ReadWritePaths=/opt/ti2026-guide/cache
+ReadWritePaths=/opt/ti2026-guide/cache /var/lib/ti2026-guide
 
 [Install]
 WantedBy=multi-user.target

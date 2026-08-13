@@ -80,9 +80,10 @@ function providerList() {
   ];
 }
 
-function createAiService({ root }) {
-  const cacheDir = path.join(root, 'cache', 'ai-analysis');
-  const statusPath = path.join(root, 'cache', 'ai-model-status.json');
+function createAiService({ root, dataDir }) {
+  const runtimeDir = dataDir || path.join(root, 'cache');
+  const cacheDir = path.join(runtimeDir, 'ai-analysis');
+  const statusPath = path.join(runtimeDir, 'ai-model-status.json');
   const relationshipPath = path.join(root, 'data', 'relationship-context.json');
   const inFlight = new Map();
   fs.mkdirSync(cacheDir, { recursive: true });
@@ -132,8 +133,8 @@ function createAiService({ root }) {
   function buildPrompt(context){
     const m=context.match||{};
     const bestOf = Number(m.bestOf || 3);
-    const payload={seriesId:String(m.id||''),startsAt:m.startsAt,stage:m.stage,bestOf,status:m.status,teams:m.teams,matchIds:context.matchIds||[],games:(context.games||[]).map(compactGame),verifiedPublicRelationshipContext:verifiedRelationshipContext(m)};
-    return `请一次性完成下面这场 TI2026 系列赛的完整分析。注意：这是“每个模型每场系列赛只调用一次”的缓存任务，所以一次回复必须覆盖系列赛整体和逐局分析。\n\n比赛数据：\n${JSON.stringify(payload)}\n\n严格返回一个 JSON 对象：\n{\n  "winnerLean":"系列赛更看好的战队名；无法判断写势均力敌",\n  "confidence":0到100整数,\n  "scorePrediction":"例如2:1；信息不足写待定",\n  "summary":"100到220字系列赛核心判断",\n  "keyReasons":["理由1","理由2","理由3"],\n  "watchPoints":["看点1","看点2"],\n  "risks":"主要不确定性",\n  "gamePredictions":[${Array.from({length:bestOf},(_,i)=>`{"game":${i+1},"winnerLean":"战队/待定","confidence":0,"reason":"该局胜负倾向理由","bpKey":"该局 BP 关键点","playerKey":"该局关键选手状态/对位","status":"prediction/observed/likely_not_needed"}`).join(',')}],\n  "playerForm":["逐条写选手状态判断；只允许依据提供的 KDA/GPM/XPM/当前系列赛数据。没有近期样本必须写数据不足"],\n  "bpAnalysis":["英雄池、BP、对位、先后手和阵容节奏分析；未提供真实 BP 时只能写赛前策略倾向，不能编造已选英雄"],\n  "relationshipContext":["只允许引用 verifiedPublicRelationshipContext 中已核验的公开队友经历/交手背景/公开摩擦事件；如果为空必须写暂无可靠公开资料，不允许凭模型记忆编造八卦"],\n  "dataGaps":["列出当前缺失的近期状态、阵容、历史数据等"]\n}\n要求：\n1. BO${bestOf} 必须给出 Game 1 到 Game ${bestOf} 的逐局条目，但若预测系列赛提前结束，后续局 status 写 likely_not_needed。\n2. 已经完成的局如果提供了真实数据，status 写 observed，并分析真实表现，不要把已发生结果当预测。\n3. 选手状态只能根据输入里的真实统计，不要凭空声称“最近状态火热/低迷”。\n4. 关系、友谊、恩怨、摩擦属于易被误传的信息，只能使用 verifiedPublicRelationshipContext；没有就明确写暂无可靠公开资料。\n5. 不涉及任何投注、赔率或博彩建议。`;
+    const payload={seriesId:String(m.id||''),startsAt:m.startsAt,stage:m.stage,bestOf,status:m.status,teams:m.teams,matchIds:context.matchIds||[],games:(context.games||[]).map(compactGame),teamIntel:context.teamIntel||null,verifiedPublicRelationshipContext:verifiedRelationshipContext(m)};
+    return `请一次性完成下面这场 TI2026 系列赛的完整分析。注意：这是“每个模型每场系列赛只调用一次”的缓存任务，所以一次回复必须覆盖系列赛整体和逐局分析。\n\n比赛数据：\n${JSON.stringify(payload)}\n\n严格返回一个 JSON 对象：\n{\n  "winnerLean":"系列赛更看好的战队名；无法判断写势均力敌",\n  "confidence":0到100整数,\n  "scorePrediction":"例如2:1；信息不足写待定",\n  "summary":"100到220字系列赛核心判断",\n  "keyReasons":["理由1","理由2","理由3"],\n  "watchPoints":["看点1","看点2"],\n  "risks":"主要不确定性",\n  "gamePredictions":[${Array.from({length:bestOf},(_,i)=>`{"game":${i+1},"winnerLean":"战队/待定","confidence":0,"reason":"该局胜负倾向理由","bpKey":"该局 BP 关键点","playerKey":"该局关键选手状态/对位","status":"prediction/observed/likely_not_needed"}`).join(',')}],\n  "playerForm":["逐条写选手状态判断；只允许依据提供的 KDA/GPM/XPM/当前系列赛数据。没有近期样本必须写数据不足"],\n  "bpAnalysis":["英雄池、BP、对位、先后手和阵容节奏分析；未提供真实 BP 时只能写赛前策略倾向，不能编造已选英雄"],\n  "relationshipContext":["只允许引用 verifiedPublicRelationshipContext 中已核验的公开队友经历/交手背景/公开摩擦事件；如果为空必须写暂无可靠公开资料，不允许凭模型记忆编造八卦"],\n  "dataGaps":["列出当前缺失的近期状态、阵容、历史数据等"]\n}\n要求：\n1. BO${bestOf} 必须给出 Game 1 到 Game ${bestOf} 的逐局条目，但若预测系列赛提前结束，后续局 status 写 likely_not_needed。\n2. 已经完成的局如果提供了真实数据，status 写 observed，并分析真实表现，不要把已发生结果当预测。\n3. 选手状态优先使用 teamIntel 中的固定阵容、教练、2026 赛季战绩、recentForm、playerStats 和 heroPool；数据仍不足时再明确写数据不足，不要凭空补数据。\n4. 关系、友谊、恩怨、摩擦属于易被误传的信息，只能使用 verifiedPublicRelationshipContext；没有就明确写暂无可靠公开资料。\n5. 不涉及任何投注、赔率或博彩建议。`;
   }
   function aggregate(models,match){
     const teams=(match?.teams||[]).map(t=>String(t?.name||'')).filter(Boolean),norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g,'');
@@ -141,6 +142,21 @@ function createAiService({ root }) {
     for(const r of Object.values(models||{})){if(r.status!=='ok'||!r.analysis?.winnerLean)continue;const w=norm(r.analysis.winnerLean),hit=teams.find(t=>w.includes(norm(t))||norm(t).includes(w));if(!hit)continue;const row=counts.get(hit);row.votes++;row.confidenceSum+=Number(r.analysis.confidence)||0}
     const ranking=[...counts.values()].map(x=>({...x,avgConfidence:x.votes?Math.round(x.confidenceSum/x.votes):0})).sort((a,b)=>b.votes-a.votes||b.avgConfidence-a.avgConfidence);
     return{totalSuccessful:Object.values(models||{}).filter(x=>x.status==='ok').length,ranking,leader:ranking[0]?.votes?ranking[0]:null};
+  }
+  function getCachedAnalysis(seriesId, match) {
+    const id=String(seriesId||'').trim();
+    if(!id)return{found:false,complete:false,seriesId:null,models:[]};
+    const latest=readJson(cachePath(id),null);
+    const providers=providerList();
+    if(!latest)return{found:false,complete:false,seriesId:id,models:[],aggregate:null};
+    const models=providers.map(p=>{
+      const c=latest.models?.[p.id];
+      if(c&&c.model===p.model)return{...c,cached:true,configured:Boolean(p.key)};
+      return{id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:p.key?'untested':'unconfigured',connected:false,cached:false,configured:Boolean(p.key),error:p.key?null:'未配置 API Key'};
+    });
+    const configured=providers.filter(p=>p.key);
+    const complete=configured.every(p=>latest.models?.[p.id]?.model===p.model);
+    return{found:true,complete,seriesId:id,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,models,aggregate:aggregate(latest.models||{},match||{}),policy:'本地缓存优先；已缓存模型不会重复调用。'};
   }
   async function analyzeOnce(context){
     const seriesId=String(context?.match?.id||'').trim(); if(!seriesId)throw new Error('missing_series_id'); if(inFlight.has(seriesId))return inFlight.get(seriesId);
@@ -150,10 +166,10 @@ function createAiService({ root }) {
       let cursor=0;const workers=Array.from({length:Math.min(2,tasks.length)},async()=>{while(cursor<tasks.length){const task=tasks[cursor++];await task()}});await Promise.all(workers);
       const latest=readJson(file,existing);latest.generatedAt||=new Date().toISOString();latest.updatedAt=new Date().toISOString();latest.aggregate=aggregate(latest.models,context.match);writeJson(file,latest);
       const lastStatus=readStatus();const publicModels=providers.map(p=>{const cached=latest.models[p.id];if(cached)return{...cached,cached:true,configured:true};return{id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:p.key?'untested':'unconfigured',connected:false,cached:false,configured:Boolean(p.key),error:p.key?null:'未配置 API Key',lastStatus:publicProvider(p,lastStatus[p.id])}});
-      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`cache/ai-analysis/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,policy:'每个模型每个系列赛最多调用一次；单次调用同时生成系列赛、逐局、选手状态、BP 与已核验公开关系背景分析。成功或失败均写入本地缓存，刷新页面不会重复调用。'};
+      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`${cacheDir}/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,policy:'缓存优先：每个模型每个系列赛最多调用一次；单次调用同时生成系列赛、逐局、选手状态、BP 与已核验公开关系背景分析。成功或失败均写入持久化本地缓存，刷新页面和重新部署不会重复调用。'};
     })().finally(()=>inFlight.delete(seriesId));inFlight.set(seriesId,promise);return promise;
   }
-  return{getStatus,analyzeOnce,configuredCount};
+  return{getStatus,getCachedAnalysis,analyzeOnce,configuredCount};
 }
 
 module.exports={createAiService};

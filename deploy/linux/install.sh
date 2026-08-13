@@ -18,7 +18,8 @@ fi
 if ! id ti2026 >/dev/null 2>&1; then
   useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin ti2026
 fi
-mkdir -p "$APP_DIR" "$APP_DIR/cache"
+DATA_DIR="${DATA_DIR:-/var/lib/ti2026-guide}"
+mkdir -p "$APP_DIR" "$APP_DIR/cache" "$DATA_DIR"
 
 # 保留服务器运行目录已有 .env 与 cache，更新其余程序文件。
 if command -v rsync >/dev/null 2>&1; then
@@ -42,9 +43,13 @@ if [[ ! -f "$APP_DIR/.env" ]]; then
   chmod 600 "$APP_DIR/.env"
 fi
 
-chown -R ti2026:ti2026 "$APP_DIR"
+if [[ -d "$APP_DIR/cache" && -z "$(find "$DATA_DIR" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
+  cp -a "$APP_DIR/cache"/. "$DATA_DIR"/ 2>/dev/null || true
+fi
+if ! grep -q '^DATA_DIR=' "$APP_DIR/.env" 2>/dev/null; then echo "DATA_DIR=$DATA_DIR" >> "$APP_DIR/.env"; fi
+chown -R ti2026:ti2026 "$APP_DIR" "$DATA_DIR"
 chmod 750 "$APP_DIR"
-chmod 700 "$APP_DIR/cache"
+chmod 700 "$APP_DIR/cache" "$DATA_DIR"
 chmod 600 "$APP_DIR/.env" || true
 
 sed "s|__NODE_BIN__|$NODE_BIN|g" "$PROJECT_DIR/deploy/systemd/ti2026-guide.service" > "/etc/systemd/system/${SERVICE_NAME}.service"
