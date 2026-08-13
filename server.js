@@ -435,111 +435,154 @@ function isPlaceholderTeamName(name) {
   return /^待定/.test(String(name || '').trim());
 }
 
-function placeholderRecord(match) {
-  const raw = String(match?.teams?.[0]?.name || '');
-  const m = raw.match(/[（(](\d+)\s*-\s*(\d+)[）)]/);
-  return m ? `${Number(m[1])}-${Number(m[2])}` : null;
+function openDotaTeamNames(raw) {
+  const radiant = canonicalTeamName(
+    raw?.team_name_radiant || raw?.radiant_team_name || raw?.radiant_name ||
+    raw?.radiant_team?.team_name || raw?.radiant_team?.name || ''
+  );
+  const dire = canonicalTeamName(
+    raw?.team_name_dire || raw?.dire_team_name || raw?.dire_name ||
+    raw?.dire_team?.team_name || raw?.dire_team?.name || ''
+  );
+  return [radiant, dire];
 }
 
-function teamRecordBefore(matches, teamName, beforeMs) {
-  const key = nameKey(canonicalTeamName(teamName));
-  let wins = 0, losses = 0;
-  for (const m of matches || []) {
-    if (m.status !== 'finished') continue;
-    if ((Date.parse(m.startsAt || '') || 0) >= beforeMs) continue;
-    const ts = m.teams || [];
-    const mine = ts.find(t => nameKey(canonicalTeamName(t?.name)) === key);
-    const other = ts.find(t => nameKey(canonicalTeamName(t?.name)) !== key);
-    if (!mine || !other) continue;
-    const won = mine.winner === true || (mine.score != null && other.score != null && Number(mine.score) > Number(other.score));
-    const lost = other.winner === true || (mine.score != null && other.score != null && Number(other.score) > Number(mine.score));
-    if (won) wins++;
-    else if (lost) losses++;
-  }
-  return `${wins}-${losses}`;
+function openDotaLeagueId(raw) {
+  const n = Number(raw?.leagueid ?? raw?.league_id ?? raw?.league?.league_id ?? 0);
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-function collectOpenDotaSeriesCandidates(proRows, liveRows) {
+function openDotaStartMs(raw) {
+  const n = Number(raw?.start_time ?? raw?.activate_time ?? raw?.lobby_start_time ?? 0);
+  return Number.isFinite(n) && n > 0 ? n * 1000 : 0;
+}
+
+function isTiOpenDotaRow(raw, tiLeagueIds) {
+  const league = String(raw?.league_name || raw?.league?.name || '').toLowerCase();
+  if (league.includes('international')) return true;
+  const id = openDotaLeagueId(raw);
+  return Boolean(id && tiLeagueIds.has(id));
+}
+
+function collectOpenDotaSourceSeries(proRows, liveRows) {
+  const allowed = new Set((seed.teams || []).map(nameKey));
+  const tiLeagueIds = new Set((proRows || []).map(openDotaLeagueId).filter(Boolean));
   const groups = new Map();
-  const upsert = (raw, live = false) => {
-    const radiant = canonicalTeamName(raw?.radiant_team?.team_name || raw?.radiant_name || '');
-    const dire = canonicalTeamName(raw?.dire_team?.team_name || raw?.dire_name || '');
-    if (!radiant || !dire || radiant === '待定' || dire === '待定') return;
-    const allowed = new Set((seed.teams || []).map(nameKey));
+
+  const upsert = (raw, kind) => {
+    if (!isTiOpenDotaRow(raw, tiLeagueIds)) return;
+    const [radiant, dire] = openDotaTeamNames(raw);
+    if (!radiant || !dire) return;
     if (!allowed.has(nameKey(radiant)) || !allowed.has(nameKey(dire))) return;
+
     const pairKey = openDotaPairKey(radiant, dire);
-    const seriesId = Number(raw?.series_id || raw?.league_series_id || 0);
-    const started = Number(raw?.start_time || raw?.activate_time || raw?.lobby_start_time || 0);
-    const at = started > 0 ? started * 1000 : Date.now();
-    const groupKey = seriesId > 0 ? `series:${seriesId}` : `pair:${pairKey}:${Math.floor(at/(4*3600000))}`;
-    if (!groups.has(groupKey)) groups.set(groupKey, { pairKey, teams:[radiant,dire], seriesId:seriesId||null, firstAt:at, games:[], live:false, liveRaw:null });
+    const seriesId = String(raw?.series_id ?? raw?.league_series_id ?? '').trim();
+    const at = openDotaStartMs(raw) || Date.now();
+    const groupKey = seriesId && seriesId !== '0'
+      ? `series:${seriesId}`
+      : `pair:${pairKey}:${Math.floor(at / (4 * 3600000))}`;
+
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, {
+        key: groupKey,
+        pairKey,
+        seriesId: seriesId && seriesId !== '0' ? seriesId : null,
+        teams: [radiant, dire],
+        firstAt: at,
+        proGames: [],
+        liveRows: []
+      });
+    }
     const g = groups.get(groupKey);
     g.firstAt = Math.min(g.firstAt || at, at);
-    if (raw?.match_id) g.games.push(raw);
-    if (live) { g.live = true; g.liveRaw = raw; }
+    g.teams = [radiant, dire];
+    if (kind === 'live') g.liveRows.push(raw);
+    else g.proGames.push(raw);
   };
-  for (const r of proRows || []) upsert(r, false);
-  for (const r of liveRows || []) upsert(r, true);
+
+  for (const r of proRows || []) upsert(r, 'pro');
+  for (const r of liveRows || []) upsert(r, 'live');
   return [...groups.values()];
 }
 
-function hydrateSwissPlaceholders(matches, proRows, liveRows) {
-  const result = (matches || []).map(m => ({...m, teams:(m.teams||[]).map(t=>({...t}))}));
-  const knownPairs = new Set(result.filter(m => (m.teams||[]).length >= 2 && !(m.teams||[]).some(t => isPlaceholderTeamName(t?.name)))
-    .map(m => openDotaPairKey(m.teams[0].name, m.teams[1].name)));
-  const candidates = collectOpenDotaSeriesCandidates(proRows, liveRows).filter(g => !knownPairs.has(g.pairKey));
-  const used = new Set();
-  const slots = result.filter(m => (m.teams || []).some(t => isPlaceholderTeamName(t?.name)))
-    .sort((a,b) => Date.parse(a.startsAt||'') - Date.parse(b.startsAt||'') || String(a.stream||'').localeCompare(String(b.stream||'')));
+function openDotaSourceSeriesMatch(g) {
+  const score = new Map(g.teams.map(name => [nameKey(name), 0]));
+  const ids = new Set();
 
-  for (const slot of slots) {
-    const targetRecord = placeholderRecord(slot);
-    if (!targetRecord) continue;
-    const slotAt = Date.parse(slot.startsAt || '') || 0;
-    const choices = candidates.filter(g => {
-      if (used.has(g.pairKey)) return false;
-      if (Math.abs((g.firstAt || slotAt) - slotAt) > 6 * 3600000) return false;
-      const aRec = teamRecordBefore(result, g.teams[0], slotAt);
-      const bRec = teamRecordBefore(result, g.teams[1], slotAt);
-      return aRec === targetRecord && bRec === targetRecord;
-    }).sort((a,b) => Math.abs((a.firstAt||slotAt)-slotAt) - Math.abs((b.firstAt||slotAt)-slotAt) || a.pairKey.localeCompare(b.pairKey));
-    const g = choices[0];
-    if (!g) continue;
-    used.add(g.pairKey);
-
-    const score = new Map([[nameKey(g.teams[0]),0],[nameKey(g.teams[1]),0]]);
-    const ids = new Set(slot.matchIds || []);
-    for (const game of g.games) {
-      if (game?.match_id) ids.add(String(game.match_id));
-      const rw = game?.radiant_win === true || game?.radiant_win === 1 || String(game?.radiant_win).toLowerCase() === 'true';
-      const rname = canonicalTeamName(game?.radiant_name || game?.radiant_team?.team_name || '');
-      const dname = canonicalTeamName(game?.dire_name || game?.dire_team?.team_name || '');
-      const winner = rw ? rname : dname;
-      const k = nameKey(winner);
-      if (score.has(k)) score.set(k, score.get(k) + 1);
-    }
-    if (g.liveRaw) {
-      const lr = g.liveRaw;
-      const rname = canonicalTeamName(lr?.radiant_team?.team_name || lr?.radiant_name || '');
-      const dname = canonicalTeamName(lr?.dire_team?.team_name || lr?.dire_name || '');
-      const rs = Number(lr?.radiant_series_wins);
-      const ds = Number(lr?.dire_series_wins);
-      if (Number.isFinite(rs) && score.has(nameKey(rname))) score.set(nameKey(rname), Math.max(score.get(nameKey(rname)) || 0, rs));
-      if (Number.isFinite(ds) && score.has(nameKey(dname))) score.set(nameKey(dname), Math.max(score.get(nameKey(dname)) || 0, ds));
-      if (lr?.match_id) ids.add(String(lr.match_id));
-    }
-    slot.teams = g.teams.map(name => ({ name, score:score.get(nameKey(name)) || 0, winner:false }));
-    const winsNeeded = Math.floor(Number(slot.bestOf || 3)/2)+1;
-    const maxScore = Math.max(...slot.teams.map(t=>Number(t.score||0)));
-    const finished = maxScore >= winsNeeded;
-    if (finished) slot.teams.forEach(t => { t.winner = Number(t.score||0) === maxScore; });
-    slot.status = finished ? 'finished' : (g.live || g.games.length ? 'live' : 'upcoming');
-    slot.matchIds = [...ids];
-    slot.source = g.live ? 'opendota-live' : 'opendota-discovered';
-    slot.scoreSource = g.live ? 'OpenDota live' : 'OpenDota proMatches';
-    slot.stage = String(slot.stage || '').replace('后续对阵', `第2轮 · ${targetRecord}组`);
+  for (const game of g.proGames || []) {
+    if (game?.match_id) ids.add(String(game.match_id));
+    const [radiant, dire] = openDotaTeamNames(game);
+    const radiantWon = game?.radiant_win === true || game?.radiant_win === 1 || String(game?.radiant_win).toLowerCase() === 'true';
+    const winner = radiantWon ? radiant : dire;
+    const k = nameKey(winner);
+    if (score.has(k)) score.set(k, score.get(k) + 1);
   }
-  return result;
+
+  for (const live of g.liveRows || []) {
+    if (live?.match_id) ids.add(String(live.match_id));
+    const [radiant, dire] = openDotaTeamNames(live);
+    const rs = Number(live?.radiant_series_wins);
+    const ds = Number(live?.dire_series_wins);
+    if (Number.isFinite(rs) && score.has(nameKey(radiant))) {
+      score.set(nameKey(radiant), Math.max(score.get(nameKey(radiant)) || 0, rs));
+    }
+    if (Number.isFinite(ds) && score.has(nameKey(dire))) {
+      score.set(nameKey(dire), Math.max(score.get(nameKey(dire)) || 0, ds));
+    }
+  }
+
+  const live = (g.liveRows || []).length > 0;
+  const teams = g.teams.map(name => ({ name, score: score.get(nameKey(name)) || 0, winner: false }));
+  const maxScore = Math.max(...teams.map(t => Number(t.score || 0)));
+  const finished = maxScore >= 2;
+  if (finished) teams.forEach(t => { t.winner = Number(t.score || 0) === maxScore; });
+
+  return {
+    id: g.seriesId ? `opendota-series-${g.seriesId}` : `opendota-${g.pairKey}-${Math.floor(g.firstAt / 1000)}`,
+    startsAt: new Date(g.firstAt).toISOString(),
+    stage: '瑞士轮 · 数据源对阵',
+    stream: null,
+    streamUrl: null,
+    bestOf: 3,
+    teams,
+    status: finished ? 'finished' : live ? 'live' : 'upcoming',
+    source: live ? 'opendota-live' : 'opendota-series',
+    scoreSource: live ? 'OpenDota live' : 'OpenDota proMatches',
+    matchIds: [...ids],
+    sourceSeriesId: g.seriesId,
+    sourcePairKey: g.pairKey
+  };
+}
+
+function mergeOpenDotaSourcePairings(matches, proRows, liveRows) {
+  const result = (matches || []).map(m => ({ ...m, teams: (m.teams || []).map(t => ({ ...t })) }));
+  const knownPairs = new Set(
+    result
+      .filter(m => (m.teams || []).length >= 2 && !(m.teams || []).some(t => isPlaceholderTeamName(t?.name)))
+      .map(m => openDotaPairKey(m.teams[0].name, m.teams[1].name))
+  );
+
+  const discovered = collectOpenDotaSourceSeries(proRows, liveRows)
+    .map(openDotaSourceSeriesMatch)
+    .filter(m => !knownPairs.has(openDotaPairKey(m.teams[0].name, m.teams[1].name)))
+    .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+
+  for (const sourceMatch of discovered) {
+    const sourceAt = Date.parse(sourceMatch.startsAt) || Date.now();
+    const candidates = result
+      .map((m, i) => ({ m, i }))
+      .filter(x => (x.m.teams || []).some(t => isPlaceholderTeamName(t?.name)))
+      .filter(x => Math.abs((Date.parse(x.m.startsAt || '') || 0) - sourceAt) <= 6 * 3600000)
+      .sort((a, b) => Math.abs((Date.parse(a.m.startsAt || '') || 0) - sourceAt) - Math.abs((Date.parse(b.m.startsAt || '') || 0) - sourceAt));
+
+    if (candidates.length) {
+      result.splice(candidates[0].i, 1, sourceMatch);
+    } else {
+      result.push(sourceMatch);
+    }
+  }
+
+  return result.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
 }
 
 function applyOpenDotaScores(matches, rows) {
@@ -694,7 +737,7 @@ async function buildPayload() {
 
   const mergedMatches = mergeMatches(seed.matches, publicUpcoming, lp.matches);
   const scoredMatches = applyOpenDotaScores(mergedMatches, openDotaResults);
-  const matches = hydrateSwissPlaceholders(scoredMatches, openDotaResults, openDotaLive).map(decorateMatch);
+  const matches = mergeOpenDotaSourcePairings(scoredMatches, openDotaResults, openDotaLive).map(decorateMatch);
   const teams = deriveTeams(matches);
   const standings = deriveStandings(matches, teams);
   const baseSource = lp.matches.length ? 'liquipedia' : publicUpcoming.length ? 'public+seed' : 'seed';
@@ -725,7 +768,7 @@ async function buildPayload() {
       seedCount: seed.matches.length,
       errors
     },
-    attribution: '赛程优先来自 Liquipedia LPDB v3；无 Liquipedia API Key 时使用内置赛程与公共 upcoming 源。已结束逐局结果与系列赛比分由 OpenDota proMatches 补充，并按约 2 分钟周期刷新。'
+    attribution: '赛程与对阵以外部数据源为准：优先 Liquipedia；OpenDota live/proMatches 用于补充实时对阵、比分与 Match ID。系统不根据战绩自行推算对阵，并按约 2 分钟周期刷新。'
   };
 }
 
