@@ -20,19 +20,26 @@ if ! id ti2026 >/dev/null 2>&1; then
 fi
 mkdir -p "$APP_DIR" "$APP_DIR/cache"
 
-# 保留服务器已有 .env 与 cache，更新其余程序文件。
+# 保留服务器运行目录已有 .env 与 cache，更新其余程序文件。
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete --exclude='.env' --exclude='cache/' --exclude='deploy/' "$PROJECT_DIR/" "$APP_DIR/"
 else
   find "$APP_DIR" -mindepth 1 -maxdepth 1 ! -name '.env' ! -name 'cache' -exec rm -rf {} +
   cp -a "$PROJECT_DIR"/. "$APP_DIR"/
   rm -rf "$APP_DIR/deploy"
+  rm -f "$APP_DIR/.env"
 fi
 
+# 首次安装：如果源码目录已有真实 .env，则优先复制；否则才使用模板。
 if [[ ! -f "$APP_DIR/.env" ]]; then
-  cp "$PROJECT_DIR/.env.example" "$APP_DIR/.env"
+  if [[ -f "$PROJECT_DIR/.env" ]]; then
+    cp "$PROJECT_DIR/.env" "$APP_DIR/.env"
+    echo "已从项目根目录复制私有 .env 到 $APP_DIR/.env"
+  else
+    cp "$PROJECT_DIR/.env.example" "$APP_DIR/.env"
+    echo "已创建 $APP_DIR/.env，请填写 API Key 后重启服务。"
+  fi
   chmod 600 "$APP_DIR/.env"
-  echo "已创建 $APP_DIR/.env，请稍后填写 Liquipedia API Key。"
 fi
 
 chown -R ti2026:ti2026 "$APP_DIR"
