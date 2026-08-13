@@ -1,0 +1,22 @@
+{
+  "updatedAt": "2026-08-13T10:45:00+08:00",
+  "note": "TI2026 赛前固定阵容与教练基线。比赛分析优先使用本文件锁定参赛人员，再用 OpenDota 动态数据补充近期表现。",
+  "teams": {
+    "Aurora Gaming": {"aliases":["Aurora"],"players":[{"name":"Nightfall","pos":1},{"name":"Mikoto","pos":2},{"name":"Ws","pos":3},{"name":"Mira","pos":4},{"name":"kaori","pos":5}],"coaches":["kpii"]},
+    "BoomBoys": {"aliases":["BetBoom Team","BB Team","BB"],"players":[{"name":"Kiritych~","pos":1},{"name":"gpk~","pos":2},{"name":"MieRo","pos":3},{"name":"Save-","pos":4},{"name":"Kataomi","pos":5}],"coaches":["boolk"]},
+    "Iron Wing": {"aliases":["1w Team","1win Team","Tundra Esports","1w","1W"],"players":[{"name":"Pure","pos":1},{"name":"bzm","pos":2},{"name":"33","pos":3},{"name":"Ari","pos":4},{"name":"Whitemon","pos":5}],"coaches":["MoonMeander"]},
+    "Team Falcons": {"aliases":["Falcons"],"players":[{"name":"skiter","pos":1},{"name":"Malr1ne","pos":2},{"name":"ATF","pos":3},{"name":"Cr1t-","pos":4},{"name":"Sneyking","pos":5}],"coaches":["Aui_2000"]},
+    "Team Liquid": {"aliases":["Liquid"],"players":[{"name":"m1CKe","pos":1},{"name":"Nisha","pos":2},{"name":"Ace","pos":3},{"name":"Boxi","pos":4},{"name":"tOfu","pos":5}],"coaches":["Blitz","Jabbz"]},
+    "Team Yandex": {"aliases":["Yandex"],"players":[{"name":"watson","pos":1},{"name":"CHIRA_JUNIOR","pos":2},{"name":"DM","pos":3},{"name":"Saksa","pos":4},{"name":"Malady","pos":5}],"coaches":["Accell"]},
+    "Xtreme Gaming": {"aliases":["XG"],"players":[{"name":"Ame","pos":1},{"name":"NothingToSay","pos":2},{"name":"Xxs","pos":3},{"name":"fy","pos":4},{"name":"xNova","pos":5}],"coaches":["xiao8"]},
+    "Team Spirit": {"aliases":["Spirit","TSpirit"],"players":[{"name":"Yatoro","pos":1},{"name":"Larl","pos":2},{"name":"Collapse","pos":3},{"name":"not me","pos":4},{"name":"rue","pos":5}],"coaches":["Miposhka","MiLAN"]},
+    "TEAM VISION": {"aliases":["Team VISION","Team Vision","PARIVISION","PARI"],"players":[{"name":"Satanic","pos":1},{"name":"No[o]ne-","pos":2},{"name":"Noticed","pos":3},{"name":"9Class","pos":4},{"name":"Dukalis","pos":5}],"coaches":["Puppey"]},
+    "Nigma Galaxy": {"aliases":["Nigma","NGX"],"players":[{"name":"SumaiL","pos":1},{"name":"lorenof","pos":2},{"name":"Davai","pos":3},{"name":"OmaR","pos":4},{"name":"GH","pos":5}],"coaches":["KuroKy"]},
+    "HULIGANI": {"aliases":["Huligani","L1GA TEAM","L1GA"],"players":[{"name":"ssnovv1","pos":1},{"name":"Mirage`","pos":2},{"name":"Corrupted","pos":3},{"name":"sayuw","pos":4},{"name":"RESPECT","pos":5}],"coaches":["TheChosenOne"]},
+    "Team Resilience": {"aliases":["Resilience","RE"],"players":[{"name":"YSR-04E","also":"Erika","pos":1},{"name":"Echozz","also":"Echo","pos":2},{"name":"niu","pos":3},{"name":"planet","pos":4},{"name":"zzq","pos":5}],"coaches":["Super"]},
+    "Vici Gaming": {"aliases":["VG","Vici"],"players":[{"name":"shiro","pos":1},{"name":"Xm","pos":2},{"name":"Bach","pos":3},{"name":"XinQ","pos":4},{"name":"y`","pos":5}],"coaches":["Yao"]},
+    "OG": {"aliases":[],"players":[{"name":"Natsumi","pos":1},{"name":"Yopaj-","pos":2},{"name":"Raven","pos":3},{"name":"TIMS","pos":4},{"name":"skem","pos":5}],"coaches":["343"]},
+    "GamerLegion": {"aliases":["Gamer Legion","GL"],"players":[{"name":"Ghost","pos":1},{"name":"RCY","pos":2},{"name":"Fayde","pos":3},{"name":"Bignum","pos":4},{"name":"Speeed","pos":5}],"coaches":["Mangusu"]},
+    "LGD Gaming": {"aliases":["LGD","HEROIC","ex-HEROIC"],"players":[{"name":"Yuma","pos":1},{"name":"TaiLung","pos":2},{"name":"Wisper","pos":3},{"name":"Thiolicor","pos":4},{"name":"KJ","pos":5}],"coaches":["kaffs","fcr"]}
+  }
+}
