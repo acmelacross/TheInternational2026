@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+const ANALYSIS_REVISION = 'team-intel-v1-20260813';
+
 function cleanBase(v) { return String(v || '').replace(/\/+$/, ''); }
 function envFirst(...names) {
   for (const n of names) {
@@ -151,22 +153,22 @@ function createAiService({ root, dataDir }) {
     if(!latest)return{found:false,complete:false,seriesId:id,models:[],aggregate:null};
     const models=providers.map(p=>{
       const c=latest.models?.[p.id];
-      if(c&&c.model===p.model)return{...c,cached:true,configured:Boolean(p.key)};
+      if(c&&c.model===p.model&&c.analysisRevision===ANALYSIS_REVISION)return{...c,cached:true,configured:Boolean(p.key)};
       return{id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:p.key?'untested':'unconfigured',connected:false,cached:false,configured:Boolean(p.key),error:p.key?null:'未配置 API Key'};
     });
     const configured=providers.filter(p=>p.key);
-    const complete=configured.every(p=>latest.models?.[p.id]?.model===p.model);
-    return{found:true,complete,seriesId:id,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,models,aggregate:aggregate(latest.models||{},match||{}),policy:'本地缓存优先；已缓存模型不会重复调用。'};
+    const complete=configured.every(p=>latest.models?.[p.id]?.model===p.model&&latest.models?.[p.id]?.analysisRevision===ANALYSIS_REVISION);
+    return{found:true,complete,seriesId:id,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,models,aggregate:aggregate(latest.models||{},match||{}),analysisRevision:ANALYSIS_REVISION,policy:'本地缓存优先；旧分析版本会在新情报管线启用后仅重算一次，随后永久读取持久缓存。'};
   }
   async function analyzeOnce(context){
     const seriesId=String(context?.match?.id||'').trim(); if(!seriesId)throw new Error('missing_series_id'); if(inFlight.has(seriesId))return inFlight.get(seriesId);
     const promise=(async()=>{
       const file=cachePath(seriesId),existing=readJson(file,{seriesId,generatedAt:null,models:{}});existing.models||={};const providers=providerList(),prompt=buildPrompt(context);
-      const tasks=providers.filter(p=>p.key&&(!existing.models[p.id]||existing.models[p.id].model!==p.model)).map(p=>async()=>{const startedAt=new Date().toISOString();try{const out=await doFetch(p,prompt),analysis=parseAnalysis(out.text),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:'ok',connected:true,cached:false,startedAt,finishedAt:new Date().toISOString(),analysis,rawText:analysis?.summary?null:out.text.slice(0,2200),usage:out.usage};existing.models[p.id]=result;updateStatus(p,{state:'connected',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason:'调用成功'})}catch(err){const reason=redact(err.message),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:'error',connected:false,cached:false,startedAt,finishedAt:new Date().toISOString(),error:reason};existing.models[p.id]=result;updateStatus(p,{state:'failed',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason})}existing.generatedAt=existing.generatedAt||new Date().toISOString();existing.updatedAt=new Date().toISOString();writeJson(file,existing)});
+      const tasks=providers.filter(p=>p.key&&(!existing.models[p.id]||existing.models[p.id].model!==p.model||existing.models[p.id].analysisRevision!==ANALYSIS_REVISION)).map(p=>async()=>{const startedAt=new Date().toISOString();try{const out=await doFetch(p,prompt),analysis=parseAnalysis(out.text),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:ANALYSIS_REVISION,status:'ok',connected:true,cached:false,startedAt,finishedAt:new Date().toISOString(),analysis,rawText:analysis?.summary?null:out.text.slice(0,2200),usage:out.usage};existing.models[p.id]=result;updateStatus(p,{state:'connected',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason:'调用成功'})}catch(err){const reason=redact(err.message),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,analysisRevision:ANALYSIS_REVISION,status:'error',connected:false,cached:false,startedAt,finishedAt:new Date().toISOString(),error:reason};existing.models[p.id]=result;updateStatus(p,{state:'failed',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason})}existing.generatedAt=existing.generatedAt||new Date().toISOString();existing.updatedAt=new Date().toISOString();writeJson(file,existing)});
       let cursor=0;const workers=Array.from({length:Math.min(2,tasks.length)},async()=>{while(cursor<tasks.length){const task=tasks[cursor++];await task()}});await Promise.all(workers);
       const latest=readJson(file,existing);latest.generatedAt||=new Date().toISOString();latest.updatedAt=new Date().toISOString();latest.aggregate=aggregate(latest.models,context.match);writeJson(file,latest);
       const lastStatus=readStatus();const publicModels=providers.map(p=>{const cached=latest.models[p.id];if(cached)return{...cached,cached:true,configured:true};return{id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:p.key?'untested':'unconfigured',connected:false,cached:false,configured:Boolean(p.key),error:p.key?null:'未配置 API Key',lastStatus:publicProvider(p,lastStatus[p.id])}});
-      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`${cacheDir}/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,policy:'缓存优先：每个模型每个系列赛最多调用一次；单次调用同时生成系列赛、逐局、选手状态、BP 与已核验公开关系背景分析。成功或失败均写入持久化本地缓存，刷新页面和重新部署不会重复调用。'};
+      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`${cacheDir}/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,analysisRevision:ANALYSIS_REVISION,policy:'缓存优先：每个模型在当前分析版本下每个系列赛最多调用一次；单次调用同时生成系列赛、逐局、选手状态、BP 与已核验公开关系背景分析。成功或失败均写入持久化本地缓存，刷新页面和重新部署不会重复调用。'};
     })().finally(()=>inFlight.delete(seriesId));inFlight.set(seriesId,promise);return promise;
   }
   return{getStatus,getCachedAnalysis,analyzeOnce,configuredCount};
