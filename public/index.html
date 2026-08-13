@@ -4,14 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0d11" />
-  <title>TI2026 上海观赛指南 v1.3.2</title>
-  <meta name="description" content="The International 2026 上海观赛指南：中国队优先、每场独立倒计时、本地战队图片缓存、瑞士轮、淘汰赛、完整赛程、Match ID/BP/KDA 与中文直播入口。" />
+  <title>TI2026潍坊线下观赛指南 v1.3.3</title>
+  <meta name="description" content="TI2026潍坊线下观赛指南：中国战队重点赛程、今日赛程、瑞士轮战绩、赛前实力预测、淘汰赛、完整赛程、赛事日历、Match ID/BP/KDA 与中文直播入口。" />
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/v133.css" />
 </head>
 <body>
   <div class="bg-grid"></div>
   <header class="topbar">
-    <div class="brand"><span class="aegis">TI</span><span>2026 上海观赛指南</span><em>v1.3.2</em></div>
+    <div class="brand"><span class="aegis">TI</span><span>TI2026潍坊线下观赛指南</span><em>v1.3.3</em></div>
     <div class="top-actions">
       <span class="source-badge" id="sourceBadge">数据加载中</span>
       <button id="focusBtn" class="ghost-btn">观赛模式</button>
@@ -25,6 +26,7 @@
       <a href="#todaySection">今日赛程</a>
       <a class="nav-cn" href="#chinaSection">🇨🇳 中国战队赛程</a>
       <a href="#swissSection">瑞士轮</a>
+      <a href="#predictionSection">预测</a>
       <a href="#bracketSection">主赛事</a>
       <a href="#scheduleSection">完整赛程</a>
       <a href="#calendarSection">赛事日历</a>
@@ -37,10 +39,11 @@
   <main class="shell" id="top">
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">THE INTERNATIONAL 2026 · SHANGHAI</p>
+        <p class="eyebrow">THE INTERNATIONAL 2026 · WEIFANG WATCH PARTY</p>
         <h1>每一场比赛，<br><span>都知道还有多久。</span></h1>
-        <p class="hero-desc">北京时间统一展示。每场比赛都有独立秒级倒计时；战队图片已缓存到项目本地；比赛开始后可继续进入详情页查看 Match ID、BP/Pick Ban、KDA、GPM/XPM 等逐局数据。</p>
-        <div class="hero-meta"><span>📍 上海</span><span>🗓 8月13日—23日</span><span>🇨🇳 XG · TR · VG</span><span>💾 战队图本地缓存</span></div>
+        <p class="hero-desc">北京时间统一展示。每场比赛都有独立秒级倒计时；战队图片使用项目本地缓存；比赛开始后可继续进入详情页查看 Match ID、BP/Pick Ban、KDA、GPM/XPM 等逐局数据。</p>
+        <div class="hero-meta"><span class="watch-party-note">📍 潍坊线下观赛</span><span>🏟 赛事举办地：上海</span><span>🗓 8月13日—23日</span><span>🇨🇳 XG · TR · VG</span><span>💾 战队图本地缓存</span></div>
+        <div class="responsible-note"><b>观赛提示：</b>数据与预测仅供娱乐参考，比赛胜负最终取决于选手临场发挥、版本理解与团队状态。本指南不建议、不支持任何形式的菠菜或博彩行为，请理性观赛、快乐看比赛。祝 CN Dota 在 TI2026 取得好成绩！</div>
       </div>
       <div class="countdown-card">
         <div class="countdown-label" id="countdownLabel">距离下一场</div>
@@ -57,7 +60,6 @@
       </div>
       <div id="todayMatches" class="match-grid"></div>
     </section>
-
 
     <section class="section china-focus" id="chinaSection">
       <div class="section-heading">
@@ -83,6 +85,34 @@
       </div>
     </section>
 
+    <section class="section prediction-section" id="predictionSection">
+      <div class="section-heading prediction-heading">
+        <div><span class="kicker">PREDICTION</span><h2>TI2026 赛前实力预测</h2><p class="section-desc">截至 2026 年 8 月 13 日瑞士轮开打前的最后预测 · 主要展示实力排序、预测区间与判断理由</p></div>
+        <span class="prediction-stamp">开赛前最后版</span>
+      </div>
+
+      <div class="prediction-intro">
+        <div class="prediction-method">
+          <h3>评分方法</h3>
+          <p>不是照搬赔率，综合参考近期大赛状态、阵容个人能力、TI/大赛经验，以及阵容稳定度与英雄池。瑞士轮尤其考验稳定性，因此“偶尔爆发”不等于一定能走得更远。</p>
+          <div class="prediction-weight-grid">
+            <span><b>40%</b>近期状态</span><span><b>25%</b>个人能力</span><span><b>20%</b>大赛经验</span><span><b>15%</b>稳定/英雄池</span>
+          </div>
+        </div>
+        <div class="prediction-callouts">
+          <div class="prediction-callout"><span>冠军首选</span><b>TEAM VISION</b></div>
+          <div class="prediction-callout"><span>最稳晋级</span><b>Team Yandex</b></div>
+          <div class="prediction-callout"><span>最大黑马</span><b>Vici Gaming</b></div>
+          <div class="prediction-callout"><span>最大变量</span><b>LGD + Topson</b></div>
+        </div>
+      </div>
+
+      <div id="predictionPodium" class="prediction-podium"></div>
+      <div class="section-heading compact"><div><span class="kicker">POWER RANKING</span><h2>16 队完整预测排名</h2></div><span class="muted small">排名是综合实力排序，不等于最终一定名次</span></div>
+      <div id="predictionRanking" class="prediction-ranking"></div>
+      <div class="prediction-disclaimer"><strong>仅供娱乐观赛：</strong>公开数据、综合评分和赛前判断都只能作为参考，Dota 2 的版本、BP、临场发挥和比赛状态都可能让结果发生巨大变化。本页面不建议、不支持任何形式的菠菜或博彩行为。理性观赛，祝 CN Dota 在 TI2026 取得好成绩。</div>
+    </section>
+
     <section class="section" id="bracketSection">
       <div class="section-heading">
         <div><span class="kicker">MAIN EVENT</span><h2>主赛事 / 淘汰赛</h2></div>
@@ -106,7 +136,7 @@
 
     <section class="section stream-section" id="streamSection">
       <div class="section-heading">
-        <div><span class="kicker">LIVE</span><h2>中文直播入口</h2><p class="section-desc">按你的要求放到赛程和赛事日历之后</p></div>
+        <div><span class="kicker">LIVE</span><h2>中文直播入口</h2><p class="section-desc">集中放在赛程与赛事日历之后，方便现场观赛时快速切换</p></div>
         <span class="muted small">打开新窗口观看</span>
       </div>
       <div id="streamGrid" class="stream-grid"></div>
@@ -121,7 +151,7 @@
     </section>
 
     <section class="section" id="teamsSection">
-      <div class="section-heading"><div><span class="kicker">TEAMS</span><h2>16 支参赛战队</h2><p class="section-desc">战队图片来自项目本地缓存，不依赖页面外链</p></div><span id="teamCount" class="muted"></span></div>
+      <div class="section-heading"><div><span class="kicker">TEAMS</span><h2>16 支参赛战队</h2><p class="section-desc">战队图片使用项目本地缓存；v1.3.3 保留你自行替换并上传的图片文件</p></div><span id="teamCount" class="muted"></span></div>
       <div id="teams" class="team-grid"></div>
     </section>
 
@@ -135,10 +165,11 @@
   <button class="back-top" id="backTop" title="返回顶部">↑</button>
 
   <div class="mobile-dock">
-    <button data-jump="chinaSection">🇨🇳 中国队</button><button data-jump="todaySection">今日</button><button data-jump="scheduleSection">赛程</button><button id="mobileFocusBtn">观赛模式</button>
+    <button data-jump="todaySection">今日</button><button data-jump="chinaSection">🇨🇳 中国队</button><button data-jump="predictionSection">预测</button><button id="mobileFocusBtn">观赛模式</button>
   </div>
 
-  <footer>TI2026 Viewing Guide v1.3.2 · 战队图片已本地缓存 · Liquipedia 数据使用时遵循 CC BY-SA 3.0 并保留归属说明。</footer>
+  <footer>TI2026潍坊线下观赛指南 v1.3.3 · 数据与预测仅供娱乐参考 · 不建议、不支持任何形式的菠菜或博彩行为 · 理性观赛，祝 CN Dota 取得好成绩。</footer>
+  <script src="/predictions.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>
