@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0d11" />
-  <title>TI2026潍坊线下观赛指南 v1.3.5</title>
+  <title>TI2026潍坊线下观赛指南 v1.3.6</title>
   <meta name="description" content="TI2026潍坊线下观赛指南：中国战队重点赛程、今日赛程、瑞士轮战绩、赛前实力预测、淘汰赛、完整赛程、赛事日历、Match ID/BP/KDA 与中文直播入口。" />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/v133.css" />
@@ -14,7 +14,7 @@
 <body>
   <div class="bg-grid"></div>
   <header class="topbar">
-    <div class="brand"><span class="aegis">TI</span><span>TI2026潍坊线下观赛指南</span><em>v1.3.5</em></div>
+    <div class="brand"><span class="aegis">TI</span><span>TI2026潍坊线下观赛指南</span><em>v1.3.6</em></div>
     <div class="top-actions">
       <span class="source-badge" id="sourceBadge">数据加载中</span>
       <button id="focusBtn" class="ghost-btn">观赛模式</button>
@@ -33,7 +33,6 @@
       <a href="#scheduleSection">完整赛程</a>
       <a href="#calendarSection">赛事日历</a>
       <a href="#streamSection">中文直播</a>
-      <a href="#chinaProfilesSection">中国战队</a>
       <a href="#teamsSection">全部战队</a>
     </div>
   </nav>
@@ -143,16 +142,8 @@
       <div id="streamGrid" class="stream-grid"></div>
     </section>
 
-    <section class="section china-profiles-section" id="chinaProfilesSection">
-      <div class="section-heading">
-        <div><span class="kicker">🇨🇳 HOME TEAMS</span><h2>中国战队资料</h2></div>
-        <span class="muted small">等待更新</span>
-      </div>
-      <div id="chinaProfiles" class="cn-profiles"><div class="empty waiting-panel">中国战队资料等待更新</div></div>
-    </section>
-
     <section class="section" id="teamsSection">
-      <div class="section-heading"><div><span class="kicker">TEAMS</span><h2>16 支参赛战队</h2><p class="section-desc">战队图片使用项目本地缓存；v1.3.5 保留你自行替换并上传的图片文件</p></div><span id="teamCount" class="muted"></span></div>
+      <div class="section-heading"><div><span class="kicker">TEAMS</span><h2>16 支参赛战队</h2><p class="section-desc">战队图片使用项目本地缓存；v1.3.6 保留你自行替换并上传的图片文件</p></div><span id="teamCount" class="muted"></span></div>
       <div id="teams" class="team-grid"></div>
     </section>
 
@@ -169,7 +160,10 @@
     <button data-jump="todaySection">今日</button><button data-jump="chinaSection">🇨🇳 中国队</button><button data-jump="predictionSection">预测</button><button id="mobileFocusBtn">观赛模式</button>
   </div>
 
-  <footer>TI2026潍坊线下观赛指南 v1.3.5 · 数据与预测仅供娱乐参考 · 不建议、不支持任何形式的菠菜或博彩行为 · 理性观赛，祝 CN Dota 取得好成绩。</footer>
+  <footer>
+    <div>TI2026潍坊线下观赛指南 v1.3.6 · 数据与预测仅供娱乐参考 · 不建议、不支持任何形式的菠菜行为 · 理性观赛，祝 CN Dota 取得好成绩。</div>
+    <div class="tech-support">技术支持：<a href="https://buer.top" target="_blank" rel="noopener">布尔信息科技(山东)有限公司</a></div>
+  </footer>
   <script src="/predictions.js"></script>
   <script src="/app.js"></script>
 </body>

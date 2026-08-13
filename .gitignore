@@ -1,4 +1,8 @@
+# Private environment files
 .env
+.env.*
+!.env.example
+
 cache/*.json
 !cache/.gitkeep
 node_modules/

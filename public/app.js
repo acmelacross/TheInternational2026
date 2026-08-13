@@ -89,7 +89,6 @@ function render() {
   renderFullSchedule();
   renderTimeline();
   renderStreams();
-  renderChinaProfiles();
   renderTeams();
   setupCountdowns();
   updateNotificationState();
@@ -141,9 +140,6 @@ function renderChina() {
   if (!ms.length) ms = (state.data.matches || []).filter(isChinaMatch).slice(-6);
   $('#chinaMatches').innerHTML = ms.length ? ms.slice(0, 6).map(matchCard).join('') : '<div class="empty">中国战队下一轮对阵尚未生成</div>';
   bindReminderButtons();
-}
-function renderChinaProfiles() {
-  $('#chinaProfiles').innerHTML = '<div class="empty waiting-panel">中国战队资料等待更新</div>';
 }
 function renderStandings() {
   const rows = state.data.standings || [];
