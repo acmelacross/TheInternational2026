@@ -39,6 +39,7 @@ function teamAsset(name) {
   return hit?.[1] || '';
 }
 function teamLogoHtml(name, cls = 'team-logo') {
+  if (/^待定/.test(String(name || '').trim())) return '';
   const src = teamAsset(name);
   const alt = escapeHtml(canonicalName(name) || name || 'Team');
   if (!src) return `<span class="${cls} logo-fallback">${escapeHtml(initials(name))}</span>`;
