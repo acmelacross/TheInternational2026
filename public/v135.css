@@ -28,3 +28,10 @@ footer{display:flex;flex-direction:column;align-items:center;gap:8px}.tech-suppo
 .ai-analysis-state{margin:0 0 8px!important;font-size:9px!important}
 @media(max-width:1200px){.ai-model-status{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:600px){.ai-model-status{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ai-analysis-section{padding-top:18px!important}.ai-analysis-section .section-desc{font-size:9px!important}}
+
+
+/* clickable match cards */
+.match-card[data-detail-href]{cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.match-card[data-detail-href]:hover{border-color:rgba(117,174,232,.42);background:#101720;transform:translateY(-1px)}
+.match-card[data-detail-href]:focus-visible{outline:2px solid rgba(117,174,232,.7);outline-offset:2px}
+.match-card[data-detail-href].cn-match:hover{border-color:rgba(217,180,94,.48)}

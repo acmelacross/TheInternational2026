@@ -112,7 +112,7 @@ function matchCard(m) {
   const rec = ratingFor(m), cn = isChinaMatch(m);
   const link = m.streamUrl ? `<a class="watch-link" target="_blank" rel="noopener" href="${escapeHtml(m.streamUrl)}">直播 ↗</a>` : '';
   const reminder = m.status === 'upcoming' ? `<button class="mini-btn" data-remind="${escapeHtml(m.id)}">⏰ 提醒</button>` : '';
-  return `<article class="match-card ${cn ? 'cn-match' : ''}">
+  return `<article class="match-card ${cn ? 'cn-match' : ''}" data-detail-href="${detailsHref(m)}" role="link" tabindex="0" aria-label="查看 ${escapeHtml(a.name)} 对阵 ${escapeHtml(b.name)} 的比赛详情">
     ${cn ? '<div class="cn-corner">中国队</div>' : ''}
     <div class="match-top"><div><span class="match-time">${fmtTime.format(new Date(m.startsAt))}</span> <span class="stream-pill">${m.stream ? `${escapeHtml(m.stream)}流 · ` : ''}BO${m.bestOf || 3}</span><span class="rating" title="${escapeHtml(rec.reason)}"><b>${rec.score}</b> ${starText(rec.score)}</span></div><span class="status ${escapeHtml(m.status)}">${statusText(m.status)}</span></div>
     ${countdownBox(m)}
@@ -122,6 +122,23 @@ function matchCard(m) {
     </div>
     <div class="match-bottom"><span class="match-stage">${escapeHtml(m.stage || 'The International 2026')} · ${escapeHtml(rec.reason)}</span><span class="match-actions">${reminder}${link}<a class="detail-link" href="${detailsHref(m)}">比赛详情 →</a></span></div>
   </article>`;
+}
+function bindMatchCardNavigation() {
+  if (document.documentElement.dataset.matchCardNavigationBound === '1') return;
+  document.documentElement.dataset.matchCardNavigationBound = '1';
+  document.addEventListener('click', e => {
+    const card = e.target.closest('.match-card[data-detail-href]');
+    if (!card) return;
+    if (e.target.closest('a,button,input,select,textarea,[role=\"button\"]')) return;
+    location.href = card.dataset.detailHref;
+  });
+  document.addEventListener('keydown', e => {
+    const card = e.target.closest('.match-card[data-detail-href]');
+    if (!card || (e.key !== 'Enter' && e.key !== ' ')) return;
+    if (e.target.closest('a,button,input,select,textarea,[role=\"button\"]')) return;
+    e.preventDefault();
+    location.href = card.dataset.detailHref;
+  });
 }
 function bindReminderButtons() {
   $$('[data-remind]').forEach(b => b.addEventListener('click', () => {
@@ -261,6 +278,7 @@ $$('[data-jump]').forEach(b => b.addEventListener('click', () => document.getEle
 $('#backTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 window.addEventListener('scroll', () => $('#backTop').classList.toggle('show', window.scrollY > 700), { passive: true });
 setupSectionNav();
+bindMatchCardNavigation();
 armLocalReminders();
 load(false);
 setInterval(() => load(false), 60 * 1000);
