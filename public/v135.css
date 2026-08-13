@@ -4,3 +4,7 @@
 
 /* v1.3.6 footer support */
 footer{display:flex;flex-direction:column;align-items:center;gap:8px}.tech-support{font-size:10px;color:#64707d}.tech-support a{color:#9aa7b5;text-decoration:none;border-bottom:1px dotted rgba(154,167,181,.45)}.tech-support a:hover{color:#d9b45e;border-color:#d9b45e}
+
+/* v1.3.8 homepage slogan */
+.hero-copy h1{font-size:0!important;line-height:1.16}.hero-copy h1 span{display:none!important}.hero-copy h1::after{content:"TI2026潍坊线下观赛，一站掌握赛程、战队、预测与实时赛况。";display:block;font-size:clamp(34px,5vw,72px);line-height:1.08;font-weight:900;letter-spacing:-.035em;color:var(--text)}
+@media(max-width:600px){.hero-copy h1::after{font-size:34px;line-height:1.12}}
