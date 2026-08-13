@@ -18,8 +18,9 @@ function redact(text) {
     .replace(/sk-[A-Za-z0-9._-]{12,}/g, 'sk-***')
     .replace(/bce-v3\/[A-Za-z0-9/_-]{12,}/g, 'bce-v3/***')
     .replace(/[A-Fa-f0-9]{32,}/g, '***')
-    .slice(0, 600);
+    .slice(0, 800);
 }
+function arr(v, max = 8) { return Array.isArray(v) ? v.map(String).filter(Boolean).slice(0, max) : []; }
 function extractText(json) {
   const c = json?.choices?.[0]?.message?.content;
   if (typeof c === 'string') return c;
@@ -41,18 +42,32 @@ function parseAnalysis(text) {
   for (const c of candidates) {
     try {
       const j = JSON.parse(c);
+      const gamePredictions = Array.isArray(j.gamePredictions) ? j.gamePredictions.slice(0, 5).map((g, i) => ({
+        game: Number(g?.game) || i + 1,
+        winnerLean: String(g?.winnerLean || g?.winner || '').trim(),
+        confidence: Math.max(0, Math.min(100, Number(g?.confidence) || 0)),
+        reason: String(g?.reason || '').trim(),
+        bpKey: String(g?.bpKey || g?.bp || '').trim(),
+        playerKey: String(g?.playerKey || g?.player || '').trim(),
+        status: String(g?.status || 'prediction').trim()
+      })) : [];
       return {
         winnerLean: String(j.winnerLean || j.winner || j.pick || '').trim(),
         confidence: Math.max(0, Math.min(100, Number(j.confidence) || 0)),
         scorePrediction: String(j.scorePrediction || j.score || '').trim(),
         summary: String(j.summary || j.analysis || '').trim(),
-        keyReasons: Array.isArray(j.keyReasons) ? j.keyReasons.map(String).slice(0, 5) : [],
-        watchPoints: Array.isArray(j.watchPoints) ? j.watchPoints.map(String).slice(0, 4) : [],
-        risks: String(j.risks || j.risk || '').trim()
+        keyReasons: arr(j.keyReasons, 6),
+        watchPoints: arr(j.watchPoints, 5),
+        risks: String(j.risks || j.risk || '').trim(),
+        gamePredictions,
+        playerForm: arr(j.playerForm, 10),
+        bpAnalysis: arr(j.bpAnalysis, 8),
+        relationshipContext: arr(j.relationshipContext, 8),
+        dataGaps: arr(j.dataGaps, 8)
       };
     } catch (_) {}
   }
-  return { winnerLean: '', confidence: 0, scorePrediction: '', summary: raw.slice(0, 1800), keyReasons: [], watchPoints: [], risks: '' };
+  return { winnerLean: '', confidence: 0, scorePrediction: '', summary: raw.slice(0, 2200), keyReasons: [], watchPoints: [], risks: '', gamePredictions: [], playerForm: [], bpAnalysis: [], relationshipContext: [], dataGaps: ['模型未按结构化 JSON 返回，已保留原始摘要。'] };
 }
 function providerList() {
   return [
@@ -68,6 +83,7 @@ function providerList() {
 function createAiService({ root }) {
   const cacheDir = path.join(root, 'cache', 'ai-analysis');
   const statusPath = path.join(root, 'cache', 'ai-model-status.json');
+  const relationshipPath = path.join(root, 'data', 'relationship-context.json');
   const inFlight = new Map();
   fs.mkdirSync(cacheDir, { recursive: true });
   const readJson = (file, fallback) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (_) { return fallback; } };
@@ -89,12 +105,12 @@ function createAiService({ root }) {
     let url, body;
     if(p.api==='responses'){
       url=`${p.baseUrl}/responses`;
-      body={model:p.model,input:prompt,max_output_tokens:900,...p.body};
+      body={model:p.model,input:prompt,max_output_tokens:2200,...p.body};
     }else{
       url=`${p.baseUrl}/chat/completions`;
-      body={model:p.model,messages:[{role:'system',content:'你是专业 Dota 2 赛事分析师。只根据用户给出的赛程、BP、KDA和已提供背景做判断，不编造不存在的数据。输出简洁中文 JSON，不要输出 Markdown。'},{role:'user',content:prompt}],stream:false,max_tokens:900,...p.body};
+      body={model:p.model,messages:[{role:'system',content:'你是专业 Dota 2 赛事分析师。只使用用户提供的赛程、逐局数据和“已核验公开背景”进行判断。绝对不要虚构选手近况、私人关系、冲突、友谊、采访或历史事件。没有可靠数据必须明确写“暂无可靠公开资料/数据不足”。输出中文 JSON，不要 Markdown。'},{role:'user',content:prompt}],stream:false,max_tokens:2200,...p.body};
     }
-    const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(90000)});
+    const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(120000)});
     const raw=await res.text(); let json=null; try{json=JSON.parse(raw)}catch(_){}
     if(!res.ok){const msg=json?.error?.message||json?.message||raw||`HTTP ${res.status}`;throw new Error(`${p.vendor} HTTP ${res.status}: ${redact(msg)}`)}
     const text=extractText(json); if(!text) throw new Error(`${p.vendor} 返回成功但没有可显示的文本内容`);
@@ -102,13 +118,22 @@ function createAiService({ root }) {
   }
   function compactGame(g,index){
     if(!g?.ok||!g.data)return{game:index+1,ok:false,matchId:g?.matchId||null,error:g?.error||'无逐局数据'};
-    const d=g.data, team=x=>({name:x?.name||'',side:x?.side||'',players:(x?.players||[]).map(p=>({name:p.name,hero:p.hero,k:p.kills,d:p.deaths,a:p.assists,gpm:p.gpm,xpm:p.xpm}))});
+    const d=g.data, team=x=>({name:x?.name||'',side:x?.side||'',players:(x?.players||[]).map(p=>({id:p.id||null,name:p.name,hero:p.hero,k:p.kills,d:p.deaths,a:p.assists,gpm:p.gpm,xpm:p.xpm,lastHits:p.lastHits,denies:p.denies}))});
     return{game:index+1,ok:true,matchId:d.matchId,length:d.length,winner:d.winner,kills:[d.team1Score,d.team2Score],team1:team(d.team1),team2:team(d.team2),heroVeto:d.heroVeto};
+  }
+  function verifiedRelationshipContext(match) {
+    const db = readJson(relationshipPath, { items: [] });
+    const teams = (match?.teams || []).map(x => String(x?.name || '').toLowerCase());
+    return (db.items || []).filter(item => {
+      const related = (item.teams || []).map(x => String(x).toLowerCase());
+      return related.length && related.every(x => teams.includes(x));
+    }).slice(0, 20);
   }
   function buildPrompt(context){
     const m=context.match||{};
-    const payload={seriesId:String(m.id||''),startsAt:m.startsAt,stage:m.stage,bestOf:m.bestOf,status:m.status,teams:m.teams,matchIds:context.matchIds||[],games:(context.games||[]).map(compactGame)};
-    return `请分析下面这场 TI2026 系列赛。\n\n比赛数据：\n${JSON.stringify(payload)}\n\n请严格返回一个 JSON 对象，字段如下：\n{\n  "winnerLean": "更看好的战队名；无法判断写势均力敌",\n  "confidence": 0到100的整数,\n  "scorePrediction": "例如2:1；没有足够信息写待定",\n  "summary": "80到180字核心判断",\n  "keyReasons": ["理由1","理由2","理由3"],\n  "watchPoints": ["看点1","看点2"],\n  "risks": "最主要的不确定性"\n}\n要求：不要虚构赛果、选手状态、BP或统计；若比赛尚未开始，只做赛前倾向；若已有逐局数据，可结合真实数据复盘。`;
+    const bestOf = Number(m.bestOf || 3);
+    const payload={seriesId:String(m.id||''),startsAt:m.startsAt,stage:m.stage,bestOf,status:m.status,teams:m.teams,matchIds:context.matchIds||[],games:(context.games||[]).map(compactGame),verifiedPublicRelationshipContext:verifiedRelationshipContext(m)};
+    return `请一次性完成下面这场 TI2026 系列赛的完整分析。注意：这是“每个模型每场系列赛只调用一次”的缓存任务，所以一次回复必须覆盖系列赛整体和逐局分析。\n\n比赛数据：\n${JSON.stringify(payload)}\n\n严格返回一个 JSON 对象：\n{\n  "winnerLean":"系列赛更看好的战队名；无法判断写势均力敌",\n  "confidence":0到100整数,\n  "scorePrediction":"例如2:1；信息不足写待定",\n  "summary":"100到220字系列赛核心判断",\n  "keyReasons":["理由1","理由2","理由3"],\n  "watchPoints":["看点1","看点2"],\n  "risks":"主要不确定性",\n  "gamePredictions":[${Array.from({length:bestOf},(_,i)=>`{"game":${i+1},"winnerLean":"战队/待定","confidence":0,"reason":"该局胜负倾向理由","bpKey":"该局 BP 关键点","playerKey":"该局关键选手状态/对位","status":"prediction/observed/likely_not_needed"}`).join(',')}],\n  "playerForm":["逐条写选手状态判断；只允许依据提供的 KDA/GPM/XPM/当前系列赛数据。没有近期样本必须写数据不足"],\n  "bpAnalysis":["英雄池、BP、对位、先后手和阵容节奏分析；未提供真实 BP 时只能写赛前策略倾向，不能编造已选英雄"],\n  "relationshipContext":["只允许引用 verifiedPublicRelationshipContext 中已核验的公开队友经历/交手背景/公开摩擦事件；如果为空必须写暂无可靠公开资料，不允许凭模型记忆编造八卦"],\n  "dataGaps":["列出当前缺失的近期状态、阵容、历史数据等"]\n}\n要求：\n1. BO${bestOf} 必须给出 Game 1 到 Game ${bestOf} 的逐局条目，但若预测系列赛提前结束，后续局 status 写 likely_not_needed。\n2. 已经完成的局如果提供了真实数据，status 写 observed，并分析真实表现，不要把已发生结果当预测。\n3. 选手状态只能根据输入里的真实统计，不要凭空声称“最近状态火热/低迷”。\n4. 关系、友谊、恩怨、摩擦属于易被误传的信息，只能使用 verifiedPublicRelationshipContext；没有就明确写暂无可靠公开资料。\n5. 不涉及任何投注、赔率或博彩建议。`;
   }
   function aggregate(models,match){
     const teams=(match?.teams||[]).map(t=>String(t?.name||'')).filter(Boolean),norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g,'');
@@ -121,11 +146,11 @@ function createAiService({ root }) {
     const seriesId=String(context?.match?.id||'').trim(); if(!seriesId)throw new Error('missing_series_id'); if(inFlight.has(seriesId))return inFlight.get(seriesId);
     const promise=(async()=>{
       const file=cachePath(seriesId),existing=readJson(file,{seriesId,generatedAt:null,models:{}});existing.models||={};const providers=providerList(),prompt=buildPrompt(context);
-      const tasks=providers.filter(p=>p.key&&!existing.models[p.id]).map(p=>async()=>{const startedAt=new Date().toISOString();try{const out=await doFetch(p,prompt),analysis=parseAnalysis(out.text),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:'ok',connected:true,cached:false,startedAt,finishedAt:new Date().toISOString(),analysis,rawText:analysis?.summary?null:out.text.slice(0,1800),usage:out.usage};existing.models[p.id]=result;updateStatus(p,{state:'connected',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason:'调用成功'})}catch(err){const reason=redact(err.message),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:'error',connected:false,cached:false,startedAt,finishedAt:new Date().toISOString(),error:reason};existing.models[p.id]=result;updateStatus(p,{state:'failed',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason})}existing.generatedAt=existing.generatedAt||new Date().toISOString();existing.updatedAt=new Date().toISOString();writeJson(file,existing)});
+      const tasks=providers.filter(p=>p.key&&!existing.models[p.id]).map(p=>async()=>{const startedAt=new Date().toISOString();try{const out=await doFetch(p,prompt),analysis=parseAnalysis(out.text),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:'ok',connected:true,cached:false,startedAt,finishedAt:new Date().toISOString(),analysis,rawText:analysis?.summary?null:out.text.slice(0,2200),usage:out.usage};existing.models[p.id]=result;updateStatus(p,{state:'connected',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason:'调用成功'})}catch(err){const reason=redact(err.message),result={id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:'error',connected:false,cached:false,startedAt,finishedAt:new Date().toISOString(),error:reason};existing.models[p.id]=result;updateStatus(p,{state:'failed',checkedAt:result.finishedAt,lastSeriesId:seriesId,reason})}existing.generatedAt=existing.generatedAt||new Date().toISOString();existing.updatedAt=new Date().toISOString();writeJson(file,existing)});
       let cursor=0;const workers=Array.from({length:Math.min(2,tasks.length)},async()=>{while(cursor<tasks.length){const task=tasks[cursor++];await task()}});await Promise.all(workers);
       const latest=readJson(file,existing);latest.generatedAt||=new Date().toISOString();latest.updatedAt=new Date().toISOString();latest.aggregate=aggregate(latest.models,context.match);writeJson(file,latest);
       const lastStatus=readStatus();const publicModels=providers.map(p=>{const cached=latest.models[p.id];if(cached)return{...cached,cached:true,configured:true};return{id:p.id,name:p.name,vendor:p.vendor,model:p.model,status:p.key?'untested':'unconfigured',connected:false,cached:false,configured:Boolean(p.key),error:p.key?null:'未配置 API Key',lastStatus:publicProvider(p,lastStatus[p.id])}});
-      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`cache/ai-analysis/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,policy:'每个模型每个系列赛最多调用一次；成功或失败结果均写入本地缓存，刷新页面不会重复调用。'};
+      return{seriesId,generatedAt:latest.generatedAt,updatedAt:latest.updatedAt,cacheFile:`cache/ai-analysis/${path.basename(file)}`,models:publicModels,aggregate:latest.aggregate,policy:'每个模型每个系列赛最多调用一次；单次调用同时生成系列赛、逐局、选手状态、BP 与已核验公开关系背景分析。成功或失败均写入本地缓存，刷新页面不会重复调用。'};
     })().finally(()=>inFlight.delete(seriesId));inFlight.set(seriesId,promise);return promise;
   }
   return{getStatus,analyzeOnce,configuredCount};
