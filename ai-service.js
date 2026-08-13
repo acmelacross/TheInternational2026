@@ -5,8 +5,50 @@ const path = require('path');
 const crypto = require('crypto');
 
 const ANALYSIS_REVISION = 'team-intel-v1-20260813';
-const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-json-v3-20260813' };
+const FORMAT_REVISIONS = { qwen:'qwen-json-v2-20260813', kimi:'kimi-k3-schema-v4-20260813' };
 function providerRevision(p){ return FORMAT_REVISIONS[p.id] || ANALYSIS_REVISION; }
+const KIMI_RESPONSE_FORMAT = {
+  type:'json_schema',
+  json_schema:{
+    name:'ti2026_analysis',
+    strict:true,
+    schema:{
+      type:'object',
+      properties:{
+        winnerLean:{type:'string'},
+        confidence:{type:'integer',minimum:0,maximum:100},
+        scorePrediction:{type:'string'},
+        summary:{type:'string'},
+        keyReasons:{type:'array',items:{type:'string'}},
+        watchPoints:{type:'array',items:{type:'string'}},
+        risks:{type:'string'},
+        gamePredictions:{
+          type:'array',
+          items:{
+            type:'object',
+            properties:{
+              game:{type:'integer'},
+              winnerLean:{type:'string'},
+              confidence:{type:'integer',minimum:0,maximum:100},
+              reason:{type:'string'},
+              bpKey:{type:'string'},
+              playerKey:{type:'string'},
+              status:{type:'string',enum:['prediction','observed','likely_not_needed']}
+            },
+            required:['game','winnerLean','confidence','reason','bpKey','playerKey','status'],
+            additionalProperties:false
+          }
+        },
+        playerForm:{type:'array',items:{type:'string'}},
+        bpAnalysis:{type:'array',items:{type:'string'}},
+        relationshipContext:{type:'array',items:{type:'string'}},
+        dataGaps:{type:'array',items:{type:'string'}}
+      },
+      required:['winnerLean','confidence','scorePrediction','summary','keyReasons','watchPoints','risks','gamePredictions','playerForm','bpAnalysis','relationshipContext','dataGaps'],
+      additionalProperties:false
+    }
+  }
+};
 
 function cleanBase(v) { return String(v || '').replace(/\/+$/, ''); }
 function envFirst(...names) {
@@ -103,7 +145,7 @@ function providerList() {
   return [
     { id:'qwen', name:'Qwen3.8-Max', vendor:'阿里云百炼', api:'chat', key:envFirst('QWEN_API_KEY','DASHSCOPE_API_KEY'), model:envFirst('QWEN_MODEL')||'qwen3.8-max', baseUrl:cleanBase(envFirst('QWEN_BASE_URL')||'https://dashscope.aliyuncs.com/compatible-mode/v1'), body:{ reasoning_effort:'medium', response_format:{type:'json_object'}, max_tokens:undefined } },
     { id:'deepseek', name:'DeepSeek-V4-Pro', vendor:'DeepSeek', api:'chat', key:envFirst('DEEPSEEK_API_KEY'), model:envFirst('DEEPSEEK_MODEL')||'deepseek-v4-pro', baseUrl:cleanBase(envFirst('DEEPSEEK_BASE_URL')||'https://api.deepseek.com'), body:{ thinking:{type:'disabled'} } },
-    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:cleanBase(envFirst('KIMI_BASE_URL')||'https://api.moonshot.cn/v1'), timeoutMs:280000, body:{ reasoning_effort:'low', response_format:{type:'json_object'}, max_tokens:undefined, max_completion_tokens:16384 } },
+    { id:'kimi', name:'Kimi K3', vendor:'Moonshot AI', api:'chat', key:envFirst('KIMI_API_KEY','MOONSHOT_API_KEY'), model:envFirst('KIMI_MODEL')||'kimi-k3', baseUrl:cleanBase(envFirst('KIMI_BASE_URL')||'https://api.moonshot.cn/v1'), timeoutMs:280000, body:{ reasoning_effort:'low', response_format:KIMI_RESPONSE_FORMAT, max_tokens:undefined } },
     { id:'doubao', name:'Doubao-Seed-2.1-Pro', vendor:'火山方舟', api:'responses', key:envFirst('DOUBAO_API_KEY','ARK_API_KEY'), model:envFirst('DOUBAO_MODEL')||'doubao-seed-2-1-pro-260628', baseUrl:cleanBase(envFirst('DOUBAO_BASE_URL')||'https://ark.cn-beijing.volces.com/api/v3'), body:{ thinking:{type:'disabled'} } },
     { id:'ernie', name:'ERNIE 5.1', vendor:'百度千帆', api:'chat', key:envFirst('ERNIE_API_KEY','QIANFAN_API_KEY'), model:envFirst('ERNIE_MODEL')||'ernie-5.1', baseUrl:cleanBase(envFirst('ERNIE_BASE_URL')||'https://qianfan.baidubce.com/v2'), body:{} },
     { id:'hy3', name:'Hy3', vendor:'腾讯云 TokenHub', api:'chat', key:envFirst('HY3_API_KEY','TENCENTMAAS_API_KEY'), model:envFirst('HY3_MODEL')||'hy3', baseUrl:cleanBase(envFirst('HY3_BASE_URL')||'https://tokenhub.tencentmaas.com/v1'), body:{ thinking:{type:'disabled'} } }
@@ -144,7 +186,7 @@ function createAiService({ root, dataDir }) {
     const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:AbortSignal.timeout(p.timeoutMs||120000)});
     const raw=await res.text(); let json=null; try{json=JSON.parse(raw)}catch(_){}
     if(!res.ok){const msg=json?.error?.message||json?.message||raw||`HTTP ${res.status}`;throw new Error(`${p.vendor} HTTP ${res.status}: ${redact(msg)}`)}
-    const text=extractText(json); if(!text){const finish=json?.choices?.[0]?.finish_reason||json?.status||'unknown';const hasReasoning=Boolean(json?.choices?.[0]?.message?.reasoning_content);throw new Error(`${p.vendor} 返回成功但没有最终文本内容（finish_reason=${finish}${hasReasoning?'，存在 reasoning_content':''}）`);}
+    const text=extractText(json); if(!text){const choice=json?.choices?.[0],msg=choice?.message;const finish=choice?.finish_reason||json?.status||'unknown';const shape={topKeys:json&&typeof json==='object'?Object.keys(json).slice(0,12):[],choiceCount:Array.isArray(json?.choices)?json.choices.length:null,choiceKeys:choice&&typeof choice==='object'?Object.keys(choice).slice(0,12):[],messageKeys:msg&&typeof msg==='object'?Object.keys(msg).slice(0,12):[],contentType:Array.isArray(msg?.content)?'array':typeof msg?.content,contentLength:typeof msg?.content==='string'?msg.content.length:null,reasoningLength:typeof msg?.reasoning_content==='string'?msg.reasoning_content.length:null};throw new Error(`${p.vendor} 返回成功但没有最终文本内容（finish_reason=${finish}；响应结构=${redact(JSON.stringify(shape))}）`);}
     return {text,usage:json?.usage||null};
   }
   function compactGame(g,index){
