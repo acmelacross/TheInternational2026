@@ -1,0 +1,56 @@
+name: Restore Kimi CN endpoint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/revert-kimi-cn-endpoint.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Restore CN endpoint without bumping cache revision
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('ai-service.js')
+          s=p.read_text(encoding='utf-8')
+          old="""function kimiBaseUrl() {
+  const configured = cleanBase(envFirst('KIMI_BASE_URL'));
+  if (!configured || /^https:\/\/api\.moonshot\.cn\/v1$/i.test(configured)) return 'https://api.moonshot.ai/v1';
+  return configured;
+}
+"""
+          new="""function kimiBaseUrl() {
+  return cleanBase(envFirst('KIMI_BASE_URL') || 'https://api.moonshot.cn/v1');
+}
+"""
+          if old not in s:
+              raise SystemExit('kimiBaseUrl global endpoint marker not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          node --check ai-service.js
+          grep -q "https://api.moonshot.cn/v1" ai-service.js
+          ! grep -q "return 'https://api.moonshot.ai/v1'" ai-service.js
+          grep -q "kimi-k3-global-v5-20260813" ai-service.js
+      - name: Remove one-time workflow and commit
+        shell: bash
+        run: |
+          rm -f .github/workflows/revert-kimi-cn-endpoint.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Restore Kimi China API endpoint"
+          git push
