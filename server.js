@@ -247,7 +247,8 @@ function normalizeDota2DbGame(matchId, result) {
   if (!result || typeof result !== 'object') return null;
   const normalizePlayers = (team) => (Array.isArray(team?.players) ? team.players : []).map((p, i) => ({
     slot: i + 1,
-    name: p?.name || p?.playerName || `Player ${i + 1}`,
+    id: p?.id || p?.playerId || p?.accountId || null,
+    name: p?.name || p?.playerName || `Player ${i + 1}`, 
     hero: p?.heroName || p?.hero || '',
     level: p?.level ?? null,
     kills: p?.kills ?? null,
@@ -559,7 +560,7 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
     if (u.pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.4', liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
+      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.5', liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
     }
     if (u.pathname === '/api/ti2026') {
       const data = await refresh(false);
