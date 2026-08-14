@@ -1,0 +1,55 @@
+name: Sync TI Day2 confirmed Round3 pairings
+on:
+  push:
+    paths:
+      - '.github/workflows/sync-ti-day2-round3.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update confirmed Day 2 pairings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          confirmed={
+            'seed-d2-1600-a': ['Team Spirit','Team Liquid'],
+            'seed-d2-1600-b': ['Iron Wing','Team Falcons'],
+            'seed-d2-1600-c': ['Xtreme Gaming','HULIGANI'],
+            'seed-d2-1600-d': ['Team Yandex','Aurora Gaming'],
+          }
+          # Note: do not infer stream assignments. These slots remain stream=null.
+          found=set()
+          for m in d.get('matches',[]):
+              mid=m.get('id')
+              if mid not in confirmed: continue
+              found.add(mid)
+              a,b=confirmed[mid]
+              m['teams']=[{'name':a,'score':None},{'name':b,'score':None}]
+              m['status']='upcoming'
+              m['source']='opendota-confirmed-series'
+              m['stage']='瑞士轮 · Day 2 · 已确认对阵'
+              m['stream']=None
+          missing=set(confirmed)-found
+          if missing: raise SystemExit(f'missing seed ids: {sorted(missing)}')
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+      - name: Commit confirmed schedule and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/sync-ti-day2-round3.yml
+          git add data/seed.json
+          git commit -m "Sync confirmed TI2026 Day 2 Round 3 pairings"
+          git push
