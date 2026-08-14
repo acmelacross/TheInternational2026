@@ -1,0 +1,56 @@
+name: Inspect TI upstreams
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/inspect-upstreams.yml
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect OpenDota and upcoming sources
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, datetime, sys
+          def get(url):
+              req=urllib.request.Request(url,headers={'User-Agent':'TI2026-inspector/1.0','Accept':'application/json'})
+              with urllib.request.urlopen(req,timeout=30) as r: return json.load(r)
+          print('=== OpenDota proMatches ===')
+          rows=get('https://api.opendota.com/api/proMatches')
+          ti=[]
+          for r in rows:
+              league=str(r.get('league_name','')).lower()
+              at=int(r.get('start_time') or 0)
+              if 'international' in league and at>=1786550400:
+                  ti.append(r)
+          for r in sorted(ti,key=lambda x:x.get('start_time',0)):
+              ts=datetime.datetime.fromtimestamp(r.get('start_time',0),datetime.timezone.utc).isoformat()
+              print(ts, 'series',r.get('series_id'),'match',r.get('match_id'),r.get('radiant_name'),'vs',r.get('dire_name'),'rw',r.get('radiant_win'),'league',r.get('league_name'),'leagueid',r.get('leagueid'))
+          print('TI_ROWS',len(ti))
+          print('=== Public upcoming ===')
+          try:
+              rows=get('https://dota.haglund.dev/v1/matches')
+              for r in rows:
+                  league=str(r.get('leagueName','')).lower()
+                  if 'international' in league and '2026' in league:
+                      print(json.dumps(r,ensure_ascii=False))
+          except Exception as e: print('UPCOMING_ERR',repr(e))
+          print('=== OpenDota live TI-like ===')
+          try:
+              rows=get('https://api.opendota.com/api/live')
+              for r in rows:
+                  names=[r.get('team_name_radiant'),r.get('team_name_dire'),r.get('radiant_name'),r.get('dire_name')]
+                  if any(names):
+                      print(json.dumps({k:r.get(k) for k in ['match_id','series_id','league_id','league_name','activate_time','team_name_radiant','team_name_dire','radiant_name','dire_name','radiant_series_wins','dire_series_wins']},ensure_ascii=False))
+          except Exception as e: print('LIVE_ERR',repr(e))
+          PY
+      - name: Remove one-time workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/inspect-upstreams.yml
+          git commit -m "Remove one-time TI upstream inspector"
+          git push
