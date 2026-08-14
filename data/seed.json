@@ -261,7 +261,7 @@
       "id": "seed-d2-1000-a",
       "startsAt": "2026-08-14T10:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "A",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -280,7 +280,7 @@
       "id": "seed-d2-1000-b",
       "startsAt": "2026-08-14T10:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "B",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -299,7 +299,7 @@
       "id": "seed-d2-1000-c",
       "startsAt": "2026-08-14T10:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "C",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -318,7 +318,7 @@
       "id": "seed-d2-1000-d",
       "startsAt": "2026-08-14T10:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "D",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -337,7 +337,7 @@
       "id": "seed-d2-1300-a",
       "startsAt": "2026-08-14T13:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "A",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -356,7 +356,7 @@
       "id": "seed-d2-1300-b",
       "startsAt": "2026-08-14T13:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "B",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -375,7 +375,7 @@
       "id": "seed-d2-1300-c",
       "startsAt": "2026-08-14T13:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "C",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -394,7 +394,7 @@
       "id": "seed-d2-1300-d",
       "startsAt": "2026-08-14T13:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "D",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -413,7 +413,7 @@
       "id": "seed-d2-1600-a",
       "startsAt": "2026-08-14T16:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "A",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -432,7 +432,7 @@
       "id": "seed-d2-1600-b",
       "startsAt": "2026-08-14T16:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "B",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -451,7 +451,7 @@
       "id": "seed-d2-1600-c",
       "startsAt": "2026-08-14T16:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "C",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
@@ -470,7 +470,7 @@
       "id": "seed-d2-1600-d",
       "startsAt": "2026-08-14T16:00:00+08:00",
       "stage": "瑞士轮 · Day 2",
-      "stream": "D",
+      "stream": null,
       "bestOf": 3,
       "teams": [
         {
