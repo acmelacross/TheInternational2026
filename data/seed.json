@@ -256,6 +256,234 @@
       ],
       "status": "tbd",
       "source": "seed"
+    },
+    {
+      "id": "seed-d2-1000-a",
+      "startsAt": "2026-08-14T10:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "A",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Xtreme Gaming",
+          "score": null
+        },
+        {
+          "name": "GamerLegion",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1000-b",
+      "startsAt": "2026-08-14T10:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "B",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "HULIGANI",
+          "score": null
+        },
+        {
+          "name": "Vici Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1000-c",
+      "startsAt": "2026-08-14T10:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "C",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Spirit",
+          "score": null
+        },
+        {
+          "name": "Aurora Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1000-d",
+      "startsAt": "2026-08-14T10:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "D",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Yandex",
+          "score": null
+        },
+        {
+          "name": "Team Liquid",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1300-a",
+      "startsAt": "2026-08-14T13:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "A",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Resilience",
+          "score": null
+        },
+        {
+          "name": "OG",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1300-b",
+      "startsAt": "2026-08-14T13:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "B",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "LGD Gaming",
+          "score": null
+        },
+        {
+          "name": "Nigma Galaxy",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1300-c",
+      "startsAt": "2026-08-14T13:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "C",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Iron Wing",
+          "score": null
+        },
+        {
+          "name": "Team Falcons",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1300-d",
+      "startsAt": "2026-08-14T13:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "D",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "BoomBoys",
+          "score": null
+        },
+        {
+          "name": "Team VISION",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1600-a",
+      "startsAt": "2026-08-14T16:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "A",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1600-b",
+      "startsAt": "2026-08-14T16:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "B",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1600-c",
+      "startsAt": "2026-08-14T16:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "C",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d2-1600-d",
+      "startsAt": "2026-08-14T16:00:00+08:00",
+      "stage": "瑞士轮 · Day 2",
+      "stream": "D",
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
     }
   ],
   "timeline": [
@@ -267,7 +495,7 @@
     {
       "date": "2026-08-14",
       "title": "瑞士轮 Day 2",
-      "detail": "瑞士轮 Day 2；具体对阵与时间由数据源发布后自动同步，不自行推算"
+      "detail": "Day 2 已公布：10:00 与 13:00 各 4 场 BO3；16:00 四场对阵待发布，后续以 OpenDota / Liquipedia 数据源更新为准"
     },
     {
       "date": "2026-08-15",
