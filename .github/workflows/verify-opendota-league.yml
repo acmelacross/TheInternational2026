@@ -1,0 +1,49 @@
+name: Verify OpenDota TI source integration
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-opendota-league.yml'
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start service
+        run: |
+          DATA_DIR=/tmp/ti2026-test PORT=17826 LIVE_REFRESH_INTERVAL_SECONDS=120 node server.js >/tmp/ti-server.log 2>&1 &
+          echo $! >/tmp/ti-server.pid
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:17826/api/health >/dev/null && break
+            sleep 1
+          done
+      - name: Verify real source health
+        run: |
+          curl -fsS -X POST http://127.0.0.1:17826/api/refresh -o /tmp/ti.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/ti.json'))
+          s=d.get('dataStatus',{}).get('sources',{})
+          lg=s.get('openDotaLeague',{})
+          pro=s.get('openDotaProMatches',{})
+          live=s.get('openDotaLive',{})
+          print('source =',d.get('source'))
+          print('league =',lg)
+          print('pro =',pro)
+          print('live =',live)
+          print('errors =',d.get('dataStatus',{}).get('errors'))
+          assert lg.get('status')=='ok', lg
+          assert lg.get('leagueId')==19719, lg
+          assert int(lg.get('count',0))>0, lg
+          assert pro.get('status')=='ok', pro
+          PY
+          curl -fsS http://127.0.0.1:17826/api/source-health
+      - name: Remove verifier
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/verify-opendota-league.yml
+          git commit -m "Remove one-time OpenDota integration verifier"
+          git push
