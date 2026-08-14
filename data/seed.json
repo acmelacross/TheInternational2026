@@ -484,6 +484,291 @@
       ],
       "status": "upcoming",
       "source": "opendota-confirmed-series"
+    },
+    {
+      "id": "seed-d3-r4-1000-a",
+      "startsAt": "2026-08-15T10:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "LGD Gaming",
+          "score": null
+        },
+        {
+          "name": "Xtreme Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r4-1000-b",
+      "startsAt": "2026-08-15T10:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Falcons",
+          "score": null
+        },
+        {
+          "name": "GamerLegion",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r4-1000-c",
+      "startsAt": "2026-08-15T10:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Resilience",
+          "score": null
+        },
+        {
+          "name": "Team Yandex",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r4-1000-d",
+      "startsAt": "2026-08-15T10:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "OG",
+          "score": null
+        },
+        {
+          "name": "HULIGANI",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r4-1300-a",
+      "startsAt": "2026-08-15T13:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "TEAM VISION",
+          "score": null
+        },
+        {
+          "name": "Team Spirit",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r4-1300-b",
+      "startsAt": "2026-08-15T13:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Iron Wing",
+          "score": null
+        },
+        {
+          "name": "Team Liquid",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r4-1300-c",
+      "startsAt": "2026-08-15T13:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "BoomBoys",
+          "score": null
+        },
+        {
+          "name": "Aurora Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r4-1300-d",
+      "startsAt": "2026-08-15T13:00:00+08:00",
+      "stage": "瑞士轮 · 第4轮 · 2-1 / 1-2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Nigma Galaxy",
+          "score": null
+        },
+        {
+          "name": "Vici Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r5-1600-1",
+      "startsAt": "2026-08-15T16:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r5-1600-2",
+      "startsAt": "2026-08-15T16:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r5-1600-3",
+      "startsAt": "2026-08-15T16:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r5-1600-4",
+      "startsAt": "2026-08-15T16:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r5-1900-1",
+      "startsAt": "2026-08-15T19:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r5-1900-2",
+      "startsAt": "2026-08-15T19:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "public-upcoming"
+    },
+    {
+      "id": "seed-d3-r5-1900-3",
+      "startsAt": "2026-08-15T19:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "public-upcoming"
     }
   ],
   "timeline": [
@@ -500,7 +785,7 @@
     {
       "date": "2026-08-15",
       "title": "瑞士轮 Day 3",
-      "detail": "瑞士轮 Day 3；完成五轮瑞士轮，具体对阵以外部数据源为准"
+      "detail": "Day 3 已发布：10:00、13:00 各 4 场第4轮 BO3；第5轮已发布 16:00 四个赛程位与 19:00 三个赛程位，具体双方仍为 TBD，待官方/赛事源确认后自动同步。"
     },
     {
       "date": "2026-08-16",
