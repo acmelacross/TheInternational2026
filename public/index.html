@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0d11" />
   <title>TI2026潍坊线下观赛指南 v1.3.9</title>
-  <meta name="description" content="TI2026潍坊线下观赛指南：中国战队重点赛程、今日赛程、瑞士轮战绩、赛前实力预测、淘汰赛、完整赛程、赛事日历、Match ID/BP/KDA 与中文直播入口。" />
+  <meta name="description" content="TI2026潍坊线下观赛指南：中国战队重点赛程、今日/明日赛程、瑞士轮战绩、首日更新实力预测、赛事日历与主赛事、完整赛程、Match ID/BP/KDA 与中文直播入口。" />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/v133.css" />
   <link rel="stylesheet" href="/v134.css" />
@@ -25,13 +25,12 @@
   <nav class="section-nav" aria-label="页面导航">
     <div class="section-nav-inner">
       <a href="#top">首页</a>
-      <a href="#todaySection">今日赛程</a>
+      <a href="#todaySection">今日 / 明日</a>
       <a class="nav-cn" href="#chinaSection">🇨🇳 中国战队赛程</a>
       <a href="#swissSection">瑞士轮</a>
       <a href="#predictionSection">预测</a>
-      <a href="#bracketSection">主赛事</a>
+      <a href="#bracketSection">赛事日历 / 主赛事</a>
       <a href="#scheduleSection">完整赛程</a>
-      <a href="#calendarSection">赛事日历</a>
       <a href="#streamSection">中文直播</a>
       <a href="#teamsSection">全部战队</a>
     </div>
@@ -54,10 +53,19 @@
 
     <section class="section" id="todaySection">
       <div class="section-heading">
-        <div><span class="kicker">WATCH TODAY</span><h2>今日赛程</h2><p class="section-desc">全部场次均显示独立倒计时</p></div>
-        <div class="date-chip" id="todayChip"></div>
+        <div><span class="kicker">TODAY & TOMORROW</span><h2>今日 / 明日赛程</h2><p class="section-desc">只展示数据源已经确认的对阵；上游一旦发布新赛程，这里会自动出现，不根据战绩自行推算。</p></div>
+        <span class="source-live-note">数据源实时同步</span>
       </div>
-      <div id="todayMatches" class="match-grid"></div>
+      <div class="day-schedule-stack">
+        <div class="day-schedule-block day-schedule-today">
+          <div class="day-schedule-head"><div><span>今天</span><b id="todayTitle">今日赛程</b></div><div class="date-chip" id="todayChip"></div></div>
+          <div id="todayMatches" class="match-grid"></div>
+        </div>
+        <div class="day-schedule-block">
+          <div class="day-schedule-head"><div><span>明天</span><b id="tomorrowTitle">明日赛程</b></div><div class="date-chip" id="tomorrowChip"></div></div>
+          <div id="tomorrowMatches" class="match-grid"></div>
+        </div>
+      </div>
     </section>
 
     <section class="section china-focus" id="chinaSection">
@@ -76,9 +84,9 @@
       <div>
         <div class="section-heading compact"><div><span class="kicker">FORMAT</span><h2>赛制速读</h2></div></div>
         <div class="panel format-panel">
-          <div class="format-item"><b>4 胜</b><span>直接晋级主赛事</span></div><div class="format-arrow">→</div>
-          <div class="format-item"><b>4 负</b><span>直接淘汰</span></div><div class="format-arrow">→</div>
-          <div class="format-item"><b>8 强</b><span>进入双败主赛事</span></div><div class="format-arrow">→</div>
+          <div class="format-item"><b>5 轮</b><span>前三天瑞士轮</span></div><div class="format-arrow">→</div>
+          <div class="format-item"><b>5 场</b><span>8 月 16 日淘汰赛</span></div><div class="format-arrow">→</div>
+          <div class="format-item"><b>8 队</b><span>晋级双败主赛事</span></div><div class="format-arrow">→</div>
           <div class="format-item"><b>BO5</b><span>总决赛</span></div>
         </div>
       </div>
@@ -86,37 +94,34 @@
 
     <section class="section prediction-section" id="predictionSection">
       <div class="section-heading prediction-heading">
-        <div><span class="kicker">PREDICTION</span><h2>TI2026 赛前实力预测</h2><p class="section-desc">截至 2026 年 8 月 13 日瑞士轮开打前的最后预测 · 主要展示实力排序、预测区间与判断理由</p></div>
-        <span class="prediction-stamp">开赛前最后版</span>
+        <div><span class="kicker">PREDICTION</span><h2>TI2026 赛前实力预测</h2><p class="section-desc">已纳入 8 月 13 日首日实战结果 · 赛前实力基线 + 瑞士轮真实战绩动态修正</p></div>
+        <span class="prediction-stamp">首日赛果更新</span>
       </div>
 
       <div class="prediction-intro">
         <div class="prediction-method">
           <h3>评分方法</h3>
-          <p>不是照搬赔率，综合参考近期大赛状态、阵容个人能力、TI/大赛经验，以及阵容稳定度与英雄池。瑞士轮尤其考验稳定性，因此“偶尔爆发”不等于一定能走得更远。</p>
+          <p>以赛前综合实力评分为基线，再根据 TI2026 已完成的瑞士轮系列赛结果做有限修正。每个系列赛净胜约修正 ±2.5 分，单队最多修正 ±6 分，避免一天的波动完全推翻赛季长期判断；后续赛果会继续自动修正。</p>
           <div class="prediction-weight-grid">
-            <span><b>40%</b>近期状态</span><span><b>25%</b>个人能力</span><span><b>20%</b>大赛经验</span><span><b>15%</b>稳定/英雄池</span>
+            <span><b>基线</b>赛前实力</span><span><b>±2.5</b>每场净胜</span><span><b>±6</b>最大修正</span><span><b>实时</b>随赛果更新</span>
           </div>
         </div>
-        <div class="prediction-callouts">
-          <div class="prediction-callout"><span>冠军首选</span><b>TEAM VISION</b></div>
-          <div class="prediction-callout"><span>最稳晋级</span><b>Team Yandex</b></div>
-          <div class="prediction-callout"><span>最大黑马</span><b>Vici Gaming</b></div>
-          <div class="prediction-callout"><span>最大变量</span><b>LGD + Topson</b></div>
-        </div>
+        <div id="predictionCallouts" class="prediction-callouts"></div>
       </div>
 
       <div id="predictionPodium" class="prediction-podium"></div>
-      <div class="section-heading compact"><div><span class="kicker">POWER RANKING</span><h2>16 队完整预测排名</h2></div><span class="muted small">排名是综合实力排序，不等于最终一定名次</span></div>
+      <div class="section-heading compact"><div><span class="kicker">POWER RANKING</span><h2>16 队动态实力排名</h2></div><span class="muted small">首日赛果已纳入；后续真实赛果继续修正</span></div>
       <div id="predictionRanking" class="prediction-ranking"></div>
       <div class="prediction-disclaimer"><strong>仅供娱乐观赛：</strong>公开数据、综合评分和赛前判断都只能作为参考，Dota 2 的版本、BP、临场发挥和比赛状态都可能让结果发生巨大变化。本页面不建议、不支持任何形式的菠菜或博彩行为。理性观赛，祝 CN Dota 在 TI2026 取得好成绩。</div>
     </section>
 
-    <section class="section" id="bracketSection">
+    <section class="section event-roadmap-section" id="bracketSection">
       <div class="section-heading">
-        <div><span class="kicker">MAIN EVENT</span><h2>主赛事 / 淘汰赛</h2></div>
-        <span class="muted small">8 月 20–23 日 · 八强双败</span>
+        <div><span class="kicker">CALENDAR · MAIN EVENT</span><h2>赛事日历 / 主赛事</h2><p class="section-desc">瑞士轮 8 月 13–16 日 · 主赛事 8 月 20–23 日；实际对阵仍以数据源发布为准。</p></div>
+        <span class="muted small">8 支队伍进入主赛事双败</span>
       </div>
+      <div id="timeline" class="timeline combined-timeline"></div>
+      <div class="section-heading compact roadmap-bracket-heading"><div><span class="kicker">MAIN EVENT</span><h2>主赛事 / 淘汰赛</h2></div><span class="muted small">对阵产生后自动填入</span></div>
       <div id="bracket" class="bracket"></div>
     </section>
 
@@ -128,10 +133,6 @@
       <div id="fullSchedule" class="schedule-days"></div>
     </section>
 
-    <section class="section" id="calendarSection">
-      <div class="section-heading"><div><span class="kicker">CALENDAR</span><h2>赛事日历</h2></div></div>
-      <div id="timeline" class="timeline"></div>
-    </section>
 
     <section class="section stream-section" id="streamSection">
       <div class="section-heading">

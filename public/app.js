@@ -78,14 +78,15 @@ async function load(force = false) {
 
 function render() {
   const d = state.data; if (!d) return;
-  const src = String(d.source||'').includes('opendota') ? '赛程 + OpenDota 比分' : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : d.source === 'public+seed' ? '公共赛程 + 内置' : '内置赛程';
+  const src = String(d.source||'').includes('opendota') ? '已公布赛程 + OpenDota 实况' : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : d.source === 'public+seed' ? '公共赛程 + 内置' : '内置赛程';
   $('#sourceBadge').textContent = src;
   $('#sourceBadge').title = (d.dataStatus?.errors || []).join('\n');
   $('#updatedAt').textContent = fmtUpdated.format(new Date(d.generatedAt));
-  $('#dataDetail').textContent = String(d.source||'').includes('opendota') ? `比分：OpenDota · 约 ${d.dataStatus?.liveRefreshSeconds||120} 秒同步` : d.source === 'liquipedia' ? 'Liquipedia LPDB v3 已连接' : d.dataStatus?.liquipediaConfigured ? 'Liquipedia 暂不可用，已自动降级' : '未配置 Liquipedia Key，当前使用已公布赛程';
+  $('#dataDetail').textContent = String(d.source||'').includes('opendota') ? `对阵/比分：外部数据源 · 约 ${d.dataStatus?.liveRefreshSeconds||120} 秒同步` : d.source === 'liquipedia' ? 'Liquipedia LPDB v3 已连接' : d.dataStatus?.liquipediaConfigured ? 'Liquipedia 暂不可用，已自动降级' : '未配置 Liquipedia Key，当前使用已公布赛程';
   renderChina();
   renderToday();
   renderStandings();
+  if (typeof window.updateTIPredictions === 'function') window.updateTIPredictions(state.data.standings || []);
   renderBracket();
   renderFullSchedule();
   renderTimeline();
@@ -95,12 +96,7 @@ function render() {
   updateNotificationState();
 }
 
-function getDisplayTodayKey() {
-  const real = todayShanghaiKey();
-  const keys = [...new Set((state.data?.matches || []).map(m => shanghaiDateKey(m.startsAt)))].sort();
-  if (keys.includes(real)) return real;
-  return keys.find(k => k >= real) || keys[keys.length - 1] || real;
-}
+function tomorrowShanghaiKey() { return shanghaiDateKey(new Date(Date.now() + 24 * 3600000)); }
 function renderStreams() {
   const s = state.data.streams || [];
   $('#streamGrid').innerHTML = s.length ? s.map(x => `<a class="stream-card" target="_blank" rel="noopener" href="${escapeHtml(x.url)}"><span class="stream-type">${escapeHtml(x.type || '直播')}</span><strong>${escapeHtml(x.name)}</strong><span class="stream-note">${escapeHtml(x.note || '')}</span><span class="stream-go">打开直播 ↗</span></a>`).join('') : '<div class="empty">直播入口等待更新</div>';
@@ -146,10 +142,25 @@ function bindReminderButtons() {
     const m = (state.data.matches || []).find(x => String(x.id) === b.dataset.remind); if (m) scheduleReminder(m, b);
   }));
 }
+function scheduleEmptyHtml(label, key) {
+  const d = new Date(`${key}T12:00:00+08:00`);
+  const date = fmtDate.format(d);
+  return `<div class="empty schedule-source-empty"><b>${escapeHtml(label)}暂无已确认对阵</b><span>${escapeHtml(date)} 的具体双方尚未从当前外部数据源返回。不会显示昨天赛程，也不会根据战绩自行推算；数据源发布后会自动同步。</span></div>`;
+}
 function renderToday() {
-  const key = getDisplayTodayKey(), ms = state.data.matches.filter(m => shanghaiDateKey(m.startsAt) === key);
-  $('#todayChip').textContent = ms[0] ? fmtDate.format(new Date(ms[0].startsAt)) : key;
-  $('#todayMatches').innerHTML = ms.length ? ms.map(matchCard).join('') : '<div class="empty">当天暂无已公布赛程</div>';
+  const todayKey = todayShanghaiKey();
+  const tomorrowKey = tomorrowShanghaiKey();
+  const all = state.data.matches || [];
+  const today = all.filter(m => shanghaiDateKey(m.startsAt) === todayKey).sort((a,b)=>Date.parse(a.startsAt)-Date.parse(b.startsAt));
+  const tomorrow = all.filter(m => shanghaiDateKey(m.startsAt) === tomorrowKey).sort((a,b)=>Date.parse(a.startsAt)-Date.parse(b.startsAt));
+  const todayDate = new Date(`${todayKey}T12:00:00+08:00`);
+  const tomorrowDate = new Date(`${tomorrowKey}T12:00:00+08:00`);
+  if ($('#todayChip')) $('#todayChip').textContent = fmtDate.format(todayDate);
+  if ($('#tomorrowChip')) $('#tomorrowChip').textContent = fmtDate.format(tomorrowDate);
+  if ($('#todayTitle')) $('#todayTitle').textContent = `今日赛程 · ${today.length} 场已确认`;
+  if ($('#tomorrowTitle')) $('#tomorrowTitle').textContent = `明日赛程 · ${tomorrow.length} 场已确认`;
+  $('#todayMatches').innerHTML = today.length ? today.map(matchCard).join('') : scheduleEmptyHtml('今日', todayKey);
+  if ($('#tomorrowMatches')) $('#tomorrowMatches').innerHTML = tomorrow.length ? tomorrow.map(matchCard).join('') : scheduleEmptyHtml('明日', tomorrowKey);
   bindReminderButtons();
 }
 function renderChina() {
