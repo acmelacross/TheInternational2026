@@ -1,0 +1,88 @@
+name: Apply confirmed Aug 14 schedule
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-day2-schedule.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Aug 14 schedule
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          p=Path('data/seed.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          matches=d.get('matches',[])
+          ids={
+            'seed-d2-1000-a','seed-d2-1000-b','seed-d2-1000-c','seed-d2-1000-d',
+            'seed-d2-1300-a','seed-d2-1300-b','seed-d2-1300-c','seed-d2-1300-d',
+            'seed-d2-1600-a','seed-d2-1600-b','seed-d2-1600-c','seed-d2-1600-d'
+          }
+          matches=[m for m in matches if m.get('id') not in ids]
+
+          def m(mid,time,a,b,stream,status='upcoming'):
+              return {
+                'id':mid,
+                'startsAt':f'2026-08-14T{time}:00+08:00',
+                'stage':'瑞士轮 · Day 2',
+                'stream':stream,
+                'bestOf':3,
+                'teams':[{'name':a,'score':None},{'name':b,'score':None}],
+                'status':status,
+                'source':'published-schedule'
+              }
+
+          day2=[
+            m('seed-d2-1000-a','10:00','Xtreme Gaming','GamerLegion','A'),
+            m('seed-d2-1000-b','10:00','HULIGANI','Vici Gaming','B'),
+            m('seed-d2-1000-c','10:00','Team Spirit','Aurora Gaming','C'),
+            m('seed-d2-1000-d','10:00','Team Yandex','Team Liquid','D'),
+            m('seed-d2-1300-a','13:00','Team Resilience','OG','A'),
+            m('seed-d2-1300-b','13:00','LGD Gaming','Nigma Galaxy','B'),
+            m('seed-d2-1300-c','13:00','Iron Wing','Team Falcons','C'),
+            m('seed-d2-1300-d','13:00','BoomBoys','Team VISION','D'),
+            m('seed-d2-1600-a','16:00','待定','待定','A','tbd'),
+            m('seed-d2-1600-b','16:00','待定','待定','B','tbd'),
+            m('seed-d2-1600-c','16:00','待定','待定','C','tbd'),
+            m('seed-d2-1600-d','16:00','待定','待定','D','tbd'),
+          ]
+          d['matches']=sorted(matches+day2,key=lambda x:x.get('startsAt',''))
+          for item in d.get('timeline',[]):
+              if item.get('date')=='2026-08-14':
+                  item['detail']='Day 2 已公布：10:00 与 13:00 各 4 场 BO3；16:00 四场对阵待发布，后续以 OpenDota / Liquipedia 数据源更新为准'
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          python3 - <<'PY'
+          import json
+          d=json.load(open('data/seed.json',encoding='utf-8'))
+          ms=[m for m in d['matches'] if m['startsAt'].startswith('2026-08-14')]
+          assert len(ms)==12, len(ms)
+          assert sum(m['startsAt'].startswith('2026-08-14T10:00') for m in ms)==4
+          assert sum(m['startsAt'].startswith('2026-08-14T13:00') for m in ms)==4
+          assert sum(m['startsAt'].startswith('2026-08-14T16:00') for m in ms)==4
+          assert sum(m['status']=='tbd' for m in ms)==4
+          print('Aug 14 schedule validated:',len(ms),'matches')
+          PY
+      - name: Commit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-day2-schedule.yml
+          git add data/seed.json
+          git commit -m "Add confirmed Aug 14 TI2026 schedule"
+          git push
