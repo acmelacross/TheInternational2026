@@ -5,8 +5,11 @@ SERVICE_NAME="${SERVICE_NAME:-ti2026-guide}"
 BRANCH="${BRANCH:-main}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:17826/api/health}"
+GIT_FETCH_TIMEOUT_SECONDS="${GIT_FETCH_TIMEOUT_SECONDS:-40}"
+GIT_FETCH_RETRIES="${GIT_FETCH_RETRIES:-3}"
 
 log(){ printf '\n\033[1;36m[TI2026]\033[0m %s\n' "$*"; }
+warn(){ printf '\n\033[1;33m[TI2026 WARN]\033[0m %s\n' "$*" >&2; }
 fail(){ printf '\n\033[1;31m[TI2026 ERROR]\033[0m %s\n' "$*" >&2; exit 1; }
 
 [[ $EUID -eq 0 ]] || fail "请使用 root 执行：sudo bash bushu_deploy.sh"
@@ -25,6 +28,7 @@ command -v git >/dev/null 2>&1 || { log "未检测到 git，正在安装"; insta
 command -v rsync >/dev/null 2>&1 || { log "未检测到 rsync，正在安装"; install_packages rsync; }
 command -v curl >/dev/null 2>&1 || { log "未检测到 curl，正在安装"; install_packages curl; }
 command -v node >/dev/null 2>&1 || { log "未检测到 Node.js，正在尝试安装系统 Node.js"; install_packages nodejs; }
+command -v timeout >/dev/null 2>&1 || fail "系统缺少 timeout 命令，请安装 coreutils 后重试。"
 
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
 if (( NODE_MAJOR < 18 )); then
@@ -47,10 +51,48 @@ if [[ -n "$DIRTY" ]]; then
   fail "检测到已跟踪文件存在本地修改。请先提交/还原这些修改，再执行 bushu_deploy.sh。"
 fi
 
-log "拉取 GitHub main 最新代码"
-git fetch origin "$BRANCH"
+git_fetch_with_retry(){
+  local attempt rc=0
+  for attempt in $(seq 1 "$GIT_FETCH_RETRIES"); do
+    log "拉取 GitHub $BRANCH（第 ${attempt}/${GIT_FETCH_RETRIES} 次，超时 ${GIT_FETCH_TIMEOUT_SECONDS}s）"
+    set +e
+    GIT_TERMINAL_PROMPT=0 timeout "${GIT_FETCH_TIMEOUT_SECONDS}s" \
+      git -c http.version=HTTP/1.1 fetch --prune origin "$BRANCH"
+    rc=$?
+    set -e
+    if [[ $rc -eq 0 ]]; then
+      return 0
+    fi
+    if [[ $rc -eq 124 ]]; then
+      warn "GitHub fetch 连接超时。"
+    else
+      warn "GitHub fetch 失败，退出码：$rc"
+    fi
+    if (( attempt < GIT_FETCH_RETRIES )); then
+      sleep $(( attempt * 2 ))
+    fi
+  done
+
+  echo
+  echo "--- GitHub 连接诊断 ---"
+  git remote -v || true
+  echo "[DNS]"
+  getent hosts github.com || true
+  echo "[curl IPv4]"
+  curl -4 -I --max-time 10 https://github.com 2>&1 | sed -n '1,8p' || true
+  echo "[proxy env]"
+  env | grep -Ei '^(http|https|all|no)_proxy=' || true
+  echo "[git proxy/config]"
+  git config --show-origin --get-regexp 'http\..*proxy|https\..*proxy|core\.sshCommand|http\.version' || true
+  echo "----------------------"
+  fail "连续 ${GIT_FETCH_RETRIES} 次无法从 GitHub 拉取。当前源码未改动，服务也未重启。"
+}
+
+git_fetch_with_retry
+
+# fetch 已经拿到 origin/$BRANCH，不再执行第二次联网的 git pull。
 git checkout "$BRANCH" >/dev/null 2>&1 || true
-git pull --ff-only origin "$BRANCH"
+git merge --ff-only "origin/$BRANCH" || fail "本地分支无法 fast-forward 到 origin/$BRANCH，请检查本地提交。"
 
 log "当前源码版本：$(cat VERSION 2>/dev/null || echo unknown)"
 
