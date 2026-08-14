@@ -412,78 +412,78 @@
     {
       "id": "seed-d2-1600-a",
       "startsAt": "2026-08-14T16:00:00+08:00",
-      "stage": "瑞士轮 · Day 2",
+      "stage": "瑞士轮 · Day 2 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Liquid",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "upcoming",
+      "source": "opendota-confirmed-series"
     },
     {
       "id": "seed-d2-1600-b",
       "startsAt": "2026-08-14T16:00:00+08:00",
-      "stage": "瑞士轮 · Day 2",
+      "stage": "瑞士轮 · Day 2 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Iron Wing",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Falcons",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "upcoming",
+      "source": "opendota-confirmed-series"
     },
     {
       "id": "seed-d2-1600-c",
       "startsAt": "2026-08-14T16:00:00+08:00",
-      "stage": "瑞士轮 · Day 2",
+      "stage": "瑞士轮 · Day 2 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Xtreme Gaming",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "HULIGANI",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "upcoming",
+      "source": "opendota-confirmed-series"
     },
     {
       "id": "seed-d2-1600-d",
       "startsAt": "2026-08-14T16:00:00+08:00",
-      "stage": "瑞士轮 · Day 2",
+      "stage": "瑞士轮 · Day 2 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Yandex",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Aurora Gaming",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "upcoming",
+      "source": "opendota-confirmed-series"
     }
   ],
   "timeline": [
