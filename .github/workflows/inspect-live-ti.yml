@@ -1,0 +1,38 @@
+name: Inspect live TI data
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/inspect-live-ti.yml
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch current site API
+        run: |
+          curl -fsSL --max-time 30 https://ti26.buer.top/api/ti2026 -o /tmp/ti.json
+          python3 - <<'PY'
+          import json, datetime
+          d=json.load(open('/tmp/ti.json'))
+          print('SOURCE',d.get('source'))
+          print('GENERATED',d.get('generatedAt'))
+          print('STATUS',json.dumps(d.get('dataStatus',{}),ensure_ascii=False))
+          print('--- MATCHES ---')
+          for m in d.get('matches',[]):
+              st=m.get('startsAt','')
+              if st[:10] in ('2026-08-13','2026-08-14','2026-08-15'):
+                  teams=' vs '.join(f"{t.get('name')}[{t.get('score')}]" for t in m.get('teams',[]))
+                  print(st, m.get('id'), m.get('stream'), m.get('status'), m.get('stage'), teams, 'source='+str(m.get('source')))
+          print('--- STANDINGS ---')
+          for r in d.get('standings',[]): print(r.get('team'),r.get('wins'),r.get('losses'),r.get('played'))
+          PY
+      - name: Remove one-time workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/inspect-live-ti.yml
+          git commit -m "Remove one-time TI live data inspector"
+          git push
