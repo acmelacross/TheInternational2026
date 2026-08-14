@@ -78,11 +78,19 @@ async function load(force = false) {
 
 function render() {
   const d = state.data; if (!d) return;
-  const src = String(d.source||'').includes('opendota') ? '已公布赛程 + OpenDota 实况' : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : d.source === 'public+seed' ? '公共赛程 + 内置' : '内置赛程';
+  const src = String(d.source||'').includes('opendota') ? `已公布赛程 + OpenDota ${d.dataStatus?.openDotaLeagueId||19719}` : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : d.source === 'public+seed' ? '公共赛程 + 内置' : '内置赛程';
   $('#sourceBadge').textContent = src;
-  $('#sourceBadge').title = (d.dataStatus?.errors || []).join('\n');
+  const hs=d.dataStatus?.sources||{};
+  const healthText=[
+    `LPDB ${hs.liquipedia?.status==='ok'?'正常':hs.liquipedia?.status==='disabled'?'等待Key':'异常'}`,
+    `OD赛事 ${hs.openDotaLeague?.status==='ok'?(hs.openDotaLeague.count??0)+'局':'异常'}`,
+    `Pro ${hs.openDotaProMatches?.status==='ok'?(hs.openDotaProMatches.count??0)+'局':'异常'}`,
+    `Live ${hs.openDotaLive?.status==='ok'?(hs.openDotaLive.count??0)+'场':'异常'}`
+  ].join(' · ');
+  const sourceErrors=Object.entries(hs).filter(([,v])=>v?.error).map(([k,v])=>`${k}: ${v.error}`);
+  $('#sourceBadge').title = [...sourceErrors,...(d.dataStatus?.errors || [])].join('\n');
   $('#updatedAt').textContent = fmtUpdated.format(new Date(d.generatedAt));
-  $('#dataDetail').textContent = String(d.source||'').includes('opendota') ? `对阵/比分：外部数据源 · 约 ${d.dataStatus?.liveRefreshSeconds||120} 秒同步` : d.source === 'liquipedia' ? 'Liquipedia LPDB v3 已连接' : d.dataStatus?.liquipediaConfigured ? 'Liquipedia 暂不可用，已自动降级' : '未配置 Liquipedia Key，当前使用已公布赛程';
+  $('#dataDetail').textContent = healthText || '数据源状态等待刷新';
   renderChina();
   renderToday();
   renderStandings();
