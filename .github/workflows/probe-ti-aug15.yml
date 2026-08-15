@@ -1,0 +1,67 @@
+name: Probe TI2026 Aug15 sources
+on:
+  push:
+    paths:
+      - '.github/workflows/probe-ti-aug15.yml'
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe live schedule sources
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re, html, urllib.request, json
+          sources = {
+            'escorenews':'https://escorenews.com/en/dota-2/international-2026/group-stage',
+            'liquipedia':'https://liquipedia.net/dota2/The_International/2026/Group_Stage',
+            'blast':'https://blast.tv/dota/tournaments/the-international-2026/series',
+            'cybersport':'https://www.cybersport.ru/tournaments/dota-2/the-international-2026',
+            'bo3':'https://bo3.gg/dota2/tournaments/the-international-2026/matches',
+          }
+          needles = ['2026-08-15','Aug 15','August 15','Team Resilience','Team Yandex','LGD','Xtreme','Nigma','Vici','Falcons','GamerLegion','L1ga','HULIGANI','Team Spirit','VISION','PARIVISION','Aurora','Liquid','BoomBoys','Iron Wing']
+          for name,url in sources.items():
+            print('\n===',name,url,'===')
+            try:
+              req=urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 TI2026ScheduleProbe/1.0','Accept-Language':'en-US,en;q=0.9'})
+              with urllib.request.urlopen(req, timeout=25) as r:
+                raw=r.read().decode('utf-8','ignore')
+                print('HTTP',r.status,'bytes',len(raw),'final',r.geturl())
+              text=html.unescape(re.sub(r'<[^>]+>',' ',raw))
+              text=re.sub(r'\s+',' ',text)
+              hits=[]
+              for n in needles:
+                for m in re.finditer(re.escape(n), text, re.I):
+                  a=max(0,m.start()-180); b=min(len(text),m.end()+260)
+                  s=text[a:b]
+                  if s not in hits: hits.append(s)
+                  if len(hits)>=30: break
+                if len(hits)>=30: break
+              for h in hits: print('HIT',h)
+              # Escorenews often embeds match JSON in page source; print likely match objects around 2026/08/15 timestamps / team tokens.
+              if name=='escorenews':
+                for pat in [r'.{0,300}2026-08-15.{0,500}', r'.{0,300}(?:team-resilience|team-yandex|xtreme|lgd-gaming|nigma|vici|falcons|gamerlegion|l1ga|team-spirit|parivision).{0,500}']:
+                  for m in re.finditer(pat, raw, re.I|re.S): print('RAW',re.sub(r'\s+',' ',m.group(0))[:1000])
+            except Exception as e:
+              print('ERR',repr(e))
+
+          print('\n=== OPENDOTA league 19719 ===')
+          try:
+            req=urllib.request.Request('https://api.opendota.com/api/leagues/19719/matches',headers={'User-Agent':'TI2026ScheduleProbe/1.0','Accept':'application/json'})
+            with urllib.request.urlopen(req,timeout=25) as r: rows=json.load(r)
+            print('COUNT',len(rows))
+            for x in rows[-20:]:
+              print(json.dumps({k:x.get(k) for k in ['match_id','series_id','start_time','radiant_team_id','dire_team_id','radiant_name','dire_name','radiant_win']},ensure_ascii=False))
+          except Exception as e: print('ERR',repr(e))
+          PY
+      - name: Remove one-time probe
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/probe-ti-aug15.yml
+          git commit -m "Remove one-time Aug15 schedule probe"
+          git push
