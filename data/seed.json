@@ -638,137 +638,137 @@
       "source": "blast"
     },
     {
-      "id": "seed-d3-r5-1715-1",
-      "startsAt": "2026-08-15T17:15:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
-      "stream": null,
-      "bestOf": 3,
-      "teams": [
-        {
-          "name": "待定",
-          "score": null
-        },
-        {
-          "name": "待定",
-          "score": null
-        }
-      ],
-      "status": "tbd",
-      "source": "published-schedule"
-    },
-    {
-      "id": "seed-d3-r5-1715-2",
-      "startsAt": "2026-08-15T17:15:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
-      "stream": null,
-      "bestOf": 3,
-      "teams": [
-        {
-          "name": "待定",
-          "score": null
-        },
-        {
-          "name": "待定",
-          "score": null
-        }
-      ],
-      "status": "tbd",
-      "source": "published-schedule"
-    },
-    {
-      "id": "seed-d3-r5-1715-4",
-      "startsAt": "2026-08-15T17:15:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
-      "stream": null,
-      "bestOf": 3,
-      "teams": [
-        {
-          "name": "待定",
-          "score": null
-        },
-        {
-          "name": "待定",
-          "score": null
-        }
-      ],
-      "status": "tbd",
-      "source": "published-schedule"
-    },
-    {
-      "id": "seed-d3-r5-1730-5",
+      "id": "seed-d3-r5-og-gl",
       "startsAt": "2026-08-15T17:30:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "stage": "瑞士轮 · 第5轮 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
-          "score": null
+          "name": "OG",
+          "score": 0
         },
         {
-          "name": "待定",
-          "score": null
+          "name": "GamerLegion",
+          "score": 2
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "finished",
+      "source": "liquipedia-mediawiki-published"
     },
     {
-      "id": "seed-d3-r5-1900-3",
-      "startsAt": "2026-08-15T19:00:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "id": "seed-d3-r5-res-xg",
+      "startsAt": "2026-08-15T17:30:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
-          "score": null
+          "name": "Team Resilience",
+          "score": 2
         },
         {
-          "name": "待定",
-          "score": null
+          "name": "Xtreme Gaming",
+          "score": 0
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "finished",
+      "source": "liquipedia-mediawiki-published"
     },
     {
-      "id": "seed-d3-r5-1900-6",
-      "startsAt": "2026-08-15T19:00:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "id": "seed-d3-r5-lgd-vg",
+      "startsAt": "2026-08-15T17:40:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "LGD Gaming",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Vici Gaming",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     },
     {
-      "id": "seed-d3-r5-1900-7",
-      "startsAt": "2026-08-15T19:00:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "id": "seed-d3-r5-bb-falcons",
+      "startsAt": "2026-08-15T18:40:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "BoomBoys",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Falcons",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "published-schedule"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
+    },
+    {
+      "id": "seed-d3-r5-iw-yandex",
+      "startsAt": "2026-08-15T19:45:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 已确认对阵",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Iron Wing",
+          "score": null
+        },
+        {
+          "name": "Team Yandex",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
+    },
+    {
+      "id": "seed-d3-r5-liquid-aurora",
+      "startsAt": "2026-08-15T20:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 已确认对阵",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Liquid",
+          "score": null
+        },
+        {
+          "name": "Aurora Gaming",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
+    },
+    {
+      "id": "seed-d3-r5-nigma-spirit",
+      "startsAt": "2026-08-15T21:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 已确认对阵",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Nigma Galaxy",
+          "score": null
+        },
+        {
+          "name": "Team Spirit",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     }
   ],
   "timeline": [
