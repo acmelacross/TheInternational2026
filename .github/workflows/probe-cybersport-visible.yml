@@ -1,0 +1,35 @@
+name: Extract visible Cybersport TI schedule
+on:
+  push:
+    paths:
+      - '.github/workflows/probe-cybersport-visible.yml'
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract visible schedule text
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re,html
+          u='https://www.cybersport.ru/tournaments/dota-2/the-international-2026'
+          req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0 TI2026Guide/1.3','Accept-Language':'ru-RU,ru;q=0.9'})
+          raw=urllib.request.urlopen(req,timeout=30).read().decode('utf-8','ignore')
+          # Remove scripts/styles before stripping tags, preserve SSR visible Russian text.
+          body=re.sub(r'<script\b[^>]*>[\s\S]*?</script>',' ',raw,flags=re.I)
+          body=re.sub(r'<style\b[^>]*>[\s\S]*?</style>',' ',body,flags=re.I)
+          text=html.unescape(re.sub(r'<[^>]+>',' ',body)); text=re.sub(r'\s+',' ',text)
+          print('VISIBLE_LEN',len(text))
+          for key in ['Сегодня','Групповая стадия','OG','L1ga','Spirit','PARIVISION','VISION','Resilience','Yandex']:
+            print('\n###',key)
+            for m in list(re.finditer(re.escape(key),text,re.I))[-12:]: print(text[max(0,m.start()-500):min(len(text),m.end()+1000)])
+          PY
+      - name: Cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/probe-cybersport-visible.yml
+          git commit -m "Remove one-time Cybersport visible probe"
+          git push
