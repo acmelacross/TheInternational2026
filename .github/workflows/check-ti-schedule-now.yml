@@ -1,29 +1,71 @@
-name: Check TI schedule now
+name: Sync TI Round 5 slots
 on:
   push:
     paths: ['.github/workflows/check-ti-schedule-now.yml']
+permissions:
+  contents: write
 jobs:
-  check:
+  sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compare current schedule with repository seed
+      - name: Sync published Round 5 slots
         run: |
           python3 - <<'PY'
           import json, urllib.request
-          seed=json.load(open('data/seed.json'))
-          print('SEED_AUG15')
-          for m in seed.get('matches',[]):
-            if str(m.get('startsAt','')).startswith('2026-08-15'):
-              print(json.dumps({'id':m.get('id'),'startsAt':m.get('startsAt'),'stage':m.get('stage'),'status':m.get('status'),'teams':[t.get('name') for t in m.get('teams',[])[:2]]},ensure_ascii=False))
+          from datetime import datetime, timezone, timedelta
+          p='data/seed.json'
+          seed=json.load(open(p))
           u='https://ti.xgoat.top/api/schedule/wiki?year=2026'
-          req=urllib.request.Request(u,headers={'User-Agent':'TI2026ScheduleCheck/1.0','Accept':'application/json'})
+          req=urllib.request.Request(u,headers={'User-Agent':'TI2026ScheduleSync/1.0','Accept':'application/json'})
           with urllib.request.urlopen(req,timeout=25) as r: d=json.load(r)
-          print('META',json.dumps({k:d.get(k) for k in ['fetchedAt','revisionAt','revisionId','stale','coverage']},ensure_ascii=False))
-          print('SOURCE_ROUND5')
+          assert d.get('ok') is True and d.get('stale') is False, d
+          round5=[]
           for st in d.get('stages',[]):
             for rd in st.get('rounds',[]):
               if rd.get('title')=='Round 5':
-                for m in rd.get('matches',[]):
-                  print(json.dumps({'id':m.get('id'),'scheduledAt':m.get('scheduledAt'),'status':m.get('status'),'opponents':[(o.get('name'),o.get('score')) for o in m.get('opponents',[])]},ensure_ascii=False))
+                round5.extend(rd.get('matches',[]))
+          assert len(round5)==7, len(round5)
+          # Only use explicitly published slots; do not infer teams from Swiss records.
+          slots=[]
+          for i,m in enumerate(round5,1):
+            iso=m.get('scheduledAt')
+            assert iso, m
+            dt=datetime.fromisoformat(iso.replace('Z','+00:00')).astimezone(timezone(timedelta(hours=8)))
+            teams=m.get('opponents') or []
+            assert len(teams)>=2 and all((x.get('name') or '').upper() in ('TBD','TBA') for x in teams[:2]), m
+            slots.append({
+              'id': f'seed-d3-r5-{dt.strftime("%H%M")}-{i}',
+              'startsAt': dt.isoformat(timespec='seconds'),
+              'stage': '瑞士轮 · 第5轮 · 对阵待官方发布',
+              'stream': None,
+              'bestOf': int(m.get('bestOf') or 3),
+              'teams': [{'name':'待定','score':None},{'name':'待定','score':None}],
+              'status': 'tbd',
+              'source': 'published-schedule'
+            })
+          old=[m for m in seed.get('matches',[]) if str(m.get('id','')).startswith('seed-d3-r5-')]
+          seed['matches']=[m for m in seed.get('matches',[]) if not str(m.get('id','')).startswith('seed-d3-r5-')]
+          seed['matches'].extend(slots)
+          seed['matches'].sort(key=lambda m:m.get('startsAt',''))
+          with open(p,'w') as f: json.dump(seed,f,ensure_ascii=False,indent=2); f.write('\n')
+          print('OLD_R5',json.dumps([(m.get('startsAt'),[t.get('name') for t in m.get('teams',[])]) for m in old],ensure_ascii=False))
+          print('NEW_R5',json.dumps([(m.get('startsAt'),[t.get('name') for t in m.get('teams',[])]) for m in slots],ensure_ascii=False))
+          print('SOURCE_REV',d.get('revisionId'),d.get('revisionAt'))
           PY
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+      - name: Commit synced data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/check-ti-schedule-now.yml
+          git add data/seed.json
+          git commit -m "Sync published TI2026 Round 5 time slots"
+          git push
