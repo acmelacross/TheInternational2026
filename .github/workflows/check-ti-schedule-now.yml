@@ -1,0 +1,24 @@
+name: Check TI schedule now
+on:
+  push:
+    paths: ['.github/workflows/check-ti-schedule-now.yml']
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch current XGoat/Liquipedia schedule
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          u='https://ti.xgoat.top/api/schedule/wiki?year=2026'
+          req=urllib.request.Request(u,headers={'User-Agent':'TI2026ScheduleCheck/1.0','Accept':'application/json'})
+          with urllib.request.urlopen(req,timeout=25) as r: d=json.load(r)
+          print('META',json.dumps({k:d.get(k) for k in ['fetchedAt','revisionAt','revisionId','stale','coverage']},ensure_ascii=False))
+          for st in d.get('stages',[]):
+            for rd in st.get('rounds',[]):
+              title=rd.get('title','')
+              if title in ('Round 4','Round 5'):
+                for m in rd.get('matches',[]):
+                  print(title, json.dumps({'scheduledAt':m.get('scheduledAt'),'status':m.get('status'),'opponents':[(o.get('name'),o.get('score')) for o in m.get('opponents',[])]},ensure_ascii=False))
+          PY
