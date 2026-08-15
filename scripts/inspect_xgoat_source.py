@@ -53,7 +53,6 @@ for x in sorted(fetch_hits): print(x)
 print('KEYWORDS')
 for x in keywords[:100]: print(x[1],x[0])
 
-# Probe same-origin API-like paths discovered.
 probes=[]
 for p in sorted(api_hits|fetch_hits):
     if p.startswith('/'):
@@ -64,5 +63,22 @@ for u in list(dict.fromkeys(probes))[:30]:
     try:
         s,h,b=get(u)
         print('PROBE',s,h.get('Content-Type'),len(b),u,re.sub(r'\s+',' ',b[:500]))
+        if '/api/schedule/wiki' in u and s == 200:
+            data=json.loads(b)
+            print('XGOAT_TOP_KEYS',sorted(data.keys()))
+            for k,v in data.items():
+                if isinstance(v,list): print('XGOAT_LIST',k,'len=',len(v),'sample=',json.dumps(v[:2],ensure_ascii=False)[:2000])
+                elif isinstance(v,dict): print('XGOAT_DICT',k,'keys=',sorted(v.keys())[:80],'sample=',json.dumps(v,ensure_ascii=False)[:2000])
+                else: print('XGOAT_SCALAR',k,repr(v)[:500])
+            def walk(obj,path='root',depth=0):
+                if depth>5:return
+                if isinstance(obj,dict):
+                    keys=set(obj.keys())
+                    if keys & {'team1','team2','opponent1','opponent2','teams','startTime','startAt','startsAt','date','bestOf','bestof','score1','score2'}:
+                        print('XGOAT_MATCHLIKE',path,json.dumps(obj,ensure_ascii=False)[:2500])
+                    for k,v in obj.items(): walk(v,f'{path}.{k}',depth+1)
+                elif isinstance(obj,list):
+                    for i,v in enumerate(obj[:30]): walk(v,f'{path}[{i}]',depth+1)
+            walk(data)
     except Exception as e:
         print('PROBE_ERR',u,repr(e))
