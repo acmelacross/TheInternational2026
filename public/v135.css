@@ -48,3 +48,12 @@ footer{display:flex;flex-direction:column;align-items:center;gap:8px}.tech-suppo
 /* Day 2 homepage refresh */
 .day-schedule-stack{display:grid;gap:18px}.day-schedule-block{padding:14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.018)}.day-schedule-today{border-color:rgba(217,180,94,.18)}.day-schedule-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.day-schedule-head>div:first-child{display:flex;align-items:baseline;gap:9px}.day-schedule-head span{font-size:9px;letter-spacing:.12em;color:#7d8b99;font-weight:900}.day-schedule-head b{font-size:15px}.source-live-note{font-size:9px;color:#84a6c8;border:1px solid rgba(117,174,232,.18);padding:5px 8px;border-radius:999px}.schedule-source-empty{display:flex!important;flex-direction:column;align-items:flex-start!important;gap:5px;padding:18px!important}.schedule-source-empty b{font-size:12px;color:#c8d1da}.schedule-source-empty span{font-size:10px;line-height:1.6;color:#7d8996}.combined-timeline{margin-bottom:22px}.roadmap-bracket-heading{margin-top:12px!important}.event-roadmap-section .bracket{margin-top:8px}.prediction-live-form{color:#a9b5c1!important}.prediction-live-form span{display:inline-block;margin-left:5px;color:#d8bd77;font-weight:900}.prediction-podium-copy p strong{color:#d8bd77}
 @media(max-width:600px){.day-schedule-block{padding:10px}.day-schedule-head{align-items:flex-start}.day-schedule-head>div:first-child{flex-direction:column;gap:2px}.source-live-note{display:none}}
+
+
+/* v1.4.0 multi-source schedule verification */
+.match-source-status{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.source-verify{display:inline-flex;align-items:center;min-height:22px;padding:2px 7px;border:1px solid rgba(255,255,255,.12);border-radius:999px;font-size:10px;line-height:1.2;white-space:nowrap;opacity:.9}
+.source-verify.confirmed{font-weight:700}
+.source-verify.provisional{opacity:.72}
+.source-verify.conflict{font-weight:700;border-style:dashed}
+@media(max-width:600px){.match-source-status{gap:4px}.source-verify{font-size:9px;padding:2px 5px}}

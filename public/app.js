@@ -61,6 +61,14 @@ function ratingFor(m) {
   return { score, reason };
 }
 function starText(score) { const n = Math.round(score); return '★'.repeat(n) + '☆'.repeat(5 - n); }
+function verificationBadge(m) {
+  const v = m?.verification;
+  if (!v) return '';
+  if (v.status === 'confirmed') return `<span class="source-verify confirmed" title="${escapeHtml((v.sources || []).join(' + '))}">✓ ${v.sourceCount || 2}源确认</span>`;
+  if (v.status === 'conflict-latest') return `<span class="source-verify conflict" title="冲突时临时采用最近成功刷新的来源：${escapeHtml(v.chosenSource || '')}">⚠ 冲突待核</span>`;
+  if (v.status === 'provisional') return `<span class="source-verify provisional" title="当前仅 ${escapeHtml(v.chosenSource || '1个来源')} 返回该赛程">单源待复核</span>`;
+  return '';
+}
 
 async function load(force = false) {
   const btn = $('#refreshBtn');
@@ -90,8 +98,9 @@ function render() {
     sourceCountText(hs.cybersportSchedule,'Cybersport'),
     `LPDB ${hs.liquipedia?.status==='ok'?'正常':hs.liquipedia?.status==='disabled'?'等待Key':'异常'}`,
     `OD赛事 ${hs.openDotaLeague?.status==='ok'?(hs.openDotaLeague.count??0)+'局':'异常'}`,
-    `Live ${hs.openDotaLive?.status==='ok'?(hs.openDotaLive.count??0)+'场':'异常'}`
-  ].join(' · ');
+    `Live ${hs.openDotaLive?.status==='ok'?(hs.openDotaLive.count??0)+'场':'异常'}`,
+    d.dataStatus?.verificationSummary ? `复核 ${d.dataStatus.verificationSummary.confirmed||0}确认/${d.dataStatus.verificationSummary.provisional||0}单源/${d.dataStatus.verificationSummary['conflict-latest']||0}冲突` : ''
+  ].filter(Boolean).join(' · ');
   const sourceErrors=Object.entries(hs).filter(([,v])=>v?.error).map(([k,v])=>`${k}: ${v.error}`);
   $('#sourceBadge').title = [...sourceErrors,...(d.dataStatus?.errors || [])].join('\n');
   $('#updatedAt').textContent = fmtUpdated.format(new Date(d.generatedAt));
@@ -124,7 +133,7 @@ function matchCard(m) {
   const reminder = m.status === 'upcoming' ? `<button class="mini-btn" data-remind="${escapeHtml(m.id)}">⏰ 提醒</button>` : '';
   return `<article class="match-card ${cn ? 'cn-match' : ''}" data-detail-href="${detailsHref(m)}" role="link" tabindex="0" aria-label="查看 ${escapeHtml(a.name)} 对阵 ${escapeHtml(b.name)} 的比赛详情">
     ${cn ? '<div class="cn-corner">中国队</div>' : ''}
-    <div class="match-top"><div><span class="match-time">${fmtTime.format(new Date(m.startsAt))}</span> <span class="stream-pill">${m.stream ? `${escapeHtml(m.stream)}流 · ` : ''}BO${m.bestOf || 3}</span><span class="rating" title="${escapeHtml(rec.reason)}"><b>${rec.score}</b> ${starText(rec.score)}</span></div><span class="status ${escapeHtml(m.status)}">${statusText(m.status)}</span></div>
+    <div class="match-top"><div><span class="match-time">${fmtTime.format(new Date(m.startsAt))}</span> <span class="stream-pill">${m.stream ? `${escapeHtml(m.stream)}流 · ` : ''}BO${m.bestOf || 3}</span><span class="rating" title="${escapeHtml(rec.reason)}"><b>${rec.score}</b> ${starText(rec.score)}</span></div><span class="match-source-status">${verificationBadge(m)}<span class="status ${escapeHtml(m.status)}">${statusText(m.status)}</span></span></div>
     ${countdownBox(m)}
     <div class="match-teams">
       <div class="team-line ${a.winner ? 'winner' : ''} ${isChinaTeam(a.name) ? 'cn-team' : ''}"><span class="team-name">${teamNameHtml(a.name)}</span><strong>${scoreText(a)}</strong></div>
@@ -170,8 +179,10 @@ function renderToday() {
   const tomorrowDate = new Date(`${tomorrowKey}T12:00:00+08:00`);
   if ($('#todayChip')) $('#todayChip').textContent = fmtDate.format(todayDate);
   if ($('#tomorrowChip')) $('#tomorrowChip').textContent = fmtDate.format(tomorrowDate);
-  if ($('#todayTitle')) $('#todayTitle').textContent = `今日赛程 · ${today.length} 场已确认`;
-  if ($('#tomorrowTitle')) $('#tomorrowTitle').textContent = `明日赛程 · ${tomorrow.length} 场已确认`;
+  const todayConfirmed = today.filter(m => m?.verification?.status === 'confirmed' || ['live','finished'].includes(m.status)).length;
+  const tomorrowConfirmed = tomorrow.filter(m => m?.verification?.status === 'confirmed').length;
+  if ($('#todayTitle')) $('#todayTitle').textContent = `今日赛程 · ${today.length} 场 · ${todayConfirmed} 场多源确认`;
+  if ($('#tomorrowTitle')) $('#tomorrowTitle').textContent = `明日赛程 · ${tomorrow.length} 场 · ${tomorrowConfirmed} 场多源确认`;
   $('#todayMatches').innerHTML = today.length ? today.map(matchCard).join('') : scheduleEmptyHtml('今日', todayKey);
   if ($('#tomorrowMatches')) $('#tomorrowMatches').innerHTML = tomorrow.length ? tomorrow.map(matchCard).join('') : scheduleEmptyHtml('明日', tomorrowKey);
   bindReminderButtons();

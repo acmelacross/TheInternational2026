@@ -49,5 +49,35 @@ assert.equal(mod.canonicalTeamName('PARIVISION'),'Team VISION');
 assert.equal(mod.canonicalTeamName('BetBoom Team'),'BoomBoys');
 assert.equal(mod.canonicalTeamName('L1GA TEAM'),'HULIGANI');
 
+
+const t = '2026-08-15T02:00:00Z';
+const mk = (a,b,source) => ({ id:`${source}-${a}-${b}`, startsAt:t, stage:'瑞士轮 · 第4轮 · 1-2', bestOf:3, teams:[{name:a},{name:b}], status:'upcoming', source });
+const confirmedSchedule = mod.reconcileScheduleMatches([
+  { key:'blastSchedule', sequence:10, observedAt:'2026-08-15T01:00:00Z', evidence:true, matches:[mk('Xtreme Gaming','LGD Gaming','blast')] },
+  { key:'cybersportSchedule', sequence:11, observedAt:'2026-08-15T01:01:00Z', evidence:true, matches:[mk('Xtreme Gaming','LGD Gaming','cybersport')] }
+]);
+assert.equal(confirmedSchedule.length,1);
+assert.equal(confirmedSchedule[0].verification.status,'confirmed');
+assert.equal(confirmedSchedule[0].verification.sourceCount,2);
+
+const conflictLatest = mod.reconcileScheduleMatches([
+  { key:'blastSchedule', sequence:20, observedAt:'2026-08-15T01:02:00Z', evidence:true, matches:[mk('Xtreme Gaming','LGD Gaming','blast')] },
+  { key:'cybersportSchedule', sequence:21, observedAt:'2026-08-15T01:03:00Z', evidence:true, matches:[mk('Xtreme Gaming','Team Yandex','cybersport')] }
+]);
+assert.equal(conflictLatest.length,1);
+assert.deepEqual(conflictLatest[0].teams.map(x=>x.name),['Xtreme Gaming','Team Yandex']);
+assert.equal(conflictLatest[0].verification.status,'conflict-latest');
+assert.equal(conflictLatest[0].verification.chosenSource,'cybersportSchedule');
+
+const confirmedAfterRecheck = mod.reconcileScheduleMatches([
+  { key:'blastSchedule', sequence:22, observedAt:'2026-08-15T01:04:00Z', evidence:true, matches:[mk('Xtreme Gaming','LGD Gaming','blast')] },
+  { key:'publicUpcoming', sequence:23, observedAt:'2026-08-15T01:05:00Z', evidence:true, matches:[mk('Xtreme Gaming','LGD Gaming','public')] },
+  { key:'cybersportSchedule', sequence:21, observedAt:'2026-08-15T01:03:00Z', evidence:true, matches:[mk('Xtreme Gaming','Team Yandex','cybersport')] }
+]);
+assert.equal(confirmedAfterRecheck.length,1);
+assert.deepEqual(confirmedAfterRecheck[0].teams.map(x=>x.name),['Xtreme Gaming','LGD Gaming']);
+assert.equal(confirmedAfterRecheck[0].verification.status,'confirmed');
+assert.equal(confirmedAfterRecheck[0].verification.sourceCount,2);
+
 console.log('All tests passed.');
 process.exit(0);

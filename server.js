@@ -16,7 +16,12 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT || 17826);
 const LIVE_REFRESH_SECONDS = Math.max(60, Number(process.env.LIVE_REFRESH_INTERVAL_SECONDS || 120));
-const AUTO_REFRESH_INTERVAL_MS = LIVE_REFRESH_SECONDS * 1000;
+const SOURCE_ROTATION_SECONDS = Math.max(60, Number(process.env.SOURCE_ROTATION_INTERVAL_SECONDS || 120));
+const FULL_RECONCILE_SECONDS = Math.max(SOURCE_ROTATION_SECONDS * 3, Number(process.env.FULL_RECONCILE_INTERVAL_SECONDS || 1800));
+const AUTO_REFRESH_INTERVAL_MS = SOURCE_ROTATION_SECONDS * 1000;
+const FULL_RECONCILE_INTERVAL_MS = FULL_RECONCILE_SECONDS * 1000;
+const FULL_REFRESH_STAGGER_MS = Math.max(0, Number(process.env.FULL_REFRESH_STAGGER_MS || 350));
+const MANUAL_REFRESH_COOLDOWN_MS = Math.max(30000, Number(process.env.MANUAL_REFRESH_COOLDOWN_SECONDS || 60) * 1000);
 const CACHE_TTL_MS = AUTO_REFRESH_INTERVAL_MS;
 const LIQUIPEDIA_API_KEY = (process.env.LIQUIPEDIA_API_KEY || '').trim();
 const PUBLIC_FALLBACK_ENABLED = String(process.env.PUBLIC_FALLBACK_ENABLED || 'true').toLowerCase() !== 'false';
@@ -28,6 +33,7 @@ const BLAST_SCHEDULE_URL = String(process.env.BLAST_SCHEDULE_URL || 'https://bla
 const CYBERSPORT_SCHEDULE_URL = String(process.env.CYBERSPORT_SCHEDULE_URL || 'https://www.cybersport.ru/tournaments/dota-2/the-international-2026').trim();
 const SCHEDULE_SOURCE_TTL_MS = Math.max(60, Number(process.env.SCHEDULE_SOURCE_TTL_SECONDS || 300)) * 1000;
 const scheduleSourceCache = new Map();
+const SOURCE_STATE_PATH = path.join(DATA_DIR, 'source-observations.json');
 const DOTA2DB_API = 'https://liquipedia.net/dota2/api.php';
 const OPENDOTA_BASE_URL = String(process.env.OPENDOTA_BASE_URL || 'https://api.opendota.com/api').replace(/\/+$/, '');
 const OPENDOTA_API_KEY = String(process.env.OPENDOTA_API_KEY || '').trim();
@@ -54,8 +60,14 @@ function canonicalTeamName(name) {
   return TEAM_NAME_ALIASES.get(key) || raw;
 }
 let memoryCache = readDiskCache();
+let sourceState = readSourceState();
+let sourceSequence = Number(sourceState.sequence || 0);
+let scheduleRotationCursor = 0;
+let runtimeRotationCursor = 0;
 let refreshPromise = null;
+let currentRefreshMode = null;
 let lastManualRefreshAt = 0;
+let lastFullRefreshAt = sourceState.lastFullRefreshAt || null;
 
 function loadDotEnv(file) {
   if (!fs.existsSync(file)) return;
@@ -80,6 +92,37 @@ function readDiskCache() {
     if (parsed && parsed.generatedAt && Array.isArray(parsed.matches)) return parsed;
   } catch (_) {}
   return null;
+}
+
+
+function readSourceState() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(SOURCE_STATE_PATH, 'utf8'));
+    if (parsed && typeof parsed === 'object' && parsed.sources && typeof parsed.sources === 'object') {
+      return { version: 1, sequence: Number(parsed.sequence || 0), lastFullRefreshAt: parsed.lastFullRefreshAt || null, sources: parsed.sources };
+    }
+  } catch (_) {}
+  return { version: 1, sequence: 0, lastFullRefreshAt: null, sources: {} };
+}
+
+function writeSourceState() {
+  try {
+    fs.mkdirSync(path.dirname(SOURCE_STATE_PATH), { recursive: true });
+    sourceState.sequence = sourceSequence;
+    sourceState.lastFullRefreshAt = lastFullRefreshAt;
+    fs.writeFileSync(SOURCE_STATE_PATH, JSON.stringify(sourceState, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[source-state] write failed:', err.message);
+  }
+}
+
+function sourceEntry(key) {
+  return sourceState.sources?.[key] || null;
+}
+
+function sourceData(key) {
+  const entry = sourceEntry(key);
+  return Array.isArray(entry?.data) ? entry.data : [];
 }
 
 function writeDiskCache(payload) {
@@ -384,9 +427,9 @@ function visibleHtmlText(raw) {
     .trim();
 }
 
-async function fetchSchedulePageCached(key, url) {
+async function fetchSchedulePageCached(key, url, force = false) {
   const cached = scheduleSourceCache.get(key);
-  if (cached && Date.now() - cached.at < SCHEDULE_SOURCE_TTL_MS) return cached.value;
+  if (!force && cached && Date.now() - cached.at < SCHEDULE_SOURCE_TTL_MS) return cached.value;
   const res = await fetch(url, {
     headers: {
       'Accept': 'text/html,application/xhtml+xml',
@@ -427,8 +470,8 @@ function scheduleInEventWindow(iso) {
   return Number.isFinite(t) && t >= Date.parse('2026-08-13T00:00:00Z') && t <= Date.parse('2026-08-23T23:59:59Z');
 }
 
-async function fetchBlastSchedule() {
-  const { raw, text } = await fetchSchedulePageCached('blast', BLAST_SCHEDULE_URL);
+async function fetchBlastSchedule(force = false) {
+  const { raw, text } = await fetchSchedulePageCached('blast', BLAST_SCHEDULE_URL, force);
   const rows = [];
   const seen = new Set();
   const re = new RegExp(`(\\d-\\d Match \\d+)\\s+Group Stage\\s+(${SCHEDULE_SOURCE_TEAM_PATTERN})\\s+(\\d{2}:\\d{2})\\s+(${SCHEDULE_SOURCE_TEAM_PATTERN})\\s+BO3`, 'gi');
@@ -498,8 +541,8 @@ function addDateKey(key, days) {
   return d.toISOString().slice(0, 10);
 }
 
-async function fetchCybersportSchedule() {
-  const { text } = await fetchSchedulePageCached('cybersport', CYBERSPORT_SCHEDULE_URL);
+async function fetchCybersportSchedule(force = false) {
+  const { text } = await fetchSchedulePageCached('cybersport', CYBERSPORT_SCHEDULE_URL, force);
   const markers = [...text.matchAll(/(High|Low)\s+(\d-\d)/gi)].map(m => ({ index:m.index, record:m[2] }));
   const re = new RegExp(`(Сегодня|Завтра)\\s+в\\s+(\\d{2}:\\d{2})\\s+(${SCHEDULE_SOURCE_TEAM_PATTERN})\\s+(${SCHEDULE_SOURCE_TEAM_PATTERN})\\s+vs`, 'gi');
   const today = dateKeyInTimeZone('Europe/Moscow');
@@ -947,103 +990,287 @@ function decorateMatch(match) {
   return { ...match, featuredChina: hasChina, recommendation: { score, reason } };
 }
 
-async function buildPayload() {
-  const errors = [];
-  const sources = {
-    liquipedia: { status: LIQUIPEDIA_API_KEY ? 'pending' : 'disabled', reason: LIQUIPEDIA_API_KEY ? null : 'missing_api_key', count: 0 },
-    blastSchedule: { status: 'pending', count: 0 },
-    cybersportSchedule: { status: 'pending', count: 0 },
-    publicUpcoming: { status: PUBLIC_FALLBACK_ENABLED ? 'pending' : 'disabled', count: 0 },
-    openDotaLeague: { status: 'pending', leagueId: OPENDOTA_TI_LEAGUE_ID, count: 0 },
-    openDotaProMatches: { status: 'pending', count: 0 },
-    openDotaLive: { status: 'pending', count: 0 }
+
+const ALL_REFRESH_SOURCE_KEYS = ['liquipedia', 'blastSchedule', 'cybersportSchedule', 'publicUpcoming', 'openDotaLeague', 'openDotaProMatches', 'openDotaLive'];
+const RUNTIME_ROTATION_PATTERN = ['openDotaLive', 'openDotaLeague', 'openDotaLive', 'openDotaProMatches', 'openDotaLive'];
+
+function scheduleRotationKeys() {
+  const keys = [];
+  if (LIQUIPEDIA_API_KEY) keys.push('liquipedia');
+  keys.push('blastSchedule', 'cybersportSchedule');
+  if (PUBLIC_FALLBACK_ENABLED) keys.push('publicUpcoming');
+  return keys;
+}
+
+function nextAutoRefreshKeys() {
+  const scheduleKeys = scheduleRotationKeys();
+  const scheduleKey = scheduleKeys[scheduleRotationCursor % scheduleKeys.length];
+  scheduleRotationCursor = (scheduleRotationCursor + 1) % Math.max(1, scheduleKeys.length);
+  const runtimeKey = RUNTIME_ROTATION_PATTERN[runtimeRotationCursor % RUNTIME_ROTATION_PATTERN.length];
+  runtimeRotationCursor = (runtimeRotationCursor + 1) % RUNTIME_ROTATION_PATTERN.length;
+  return [...new Set([scheduleKey, runtimeKey].filter(Boolean))];
+}
+
+function sourceHealth(key, extra = {}) {
+  const e = sourceEntry(key);
+  if (!e) {
+    if (key === 'liquipedia' && !LIQUIPEDIA_API_KEY) return { status:'disabled', reason:'missing_api_key', count:0, ...extra };
+    if (key === 'publicUpcoming' && !PUBLIC_FALLBACK_ENABLED) return { status:'disabled', reason:'disabled_by_config', count:0, ...extra };
+    return { status:'pending', count:0, ...extra };
+  }
+  const count = Array.isArray(e.data) ? e.data.length : 0;
+  const ageSeconds = e.lastSuccessAt ? Math.max(0, Math.round((Date.now() - Date.parse(e.lastSuccessAt)) / 1000)) : null;
+  return {
+    status: e.status || (count ? 'ok' : 'empty'),
+    count,
+    lastAttemptAt: e.lastAttemptAt || null,
+    lastSuccessAt: e.lastSuccessAt || null,
+    observedAt: e.observedAt || null,
+    sequence: Number(e.sequence || 0),
+    ageSeconds,
+    usingStaleData: Boolean(count && e.status === 'error'),
+    ...(e.error ? { error:e.error } : {}),
+    ...(e.reason ? { reason:e.reason } : {}),
+    ...(e.meta ? { meta:e.meta } : {}),
+    ...extra
   };
+}
 
-  let lp = { matches: [], meta: { enabled: false, reason: 'missing_api_key' } };
-  if (LIQUIPEDIA_API_KEY) {
-    try {
-      lp = await fetchLiquipediaMatches();
-      sources.liquipedia = { status:'ok', count:lp.matches.length, meta:lp.meta };
-    } catch (err) {
-      sources.liquipedia = { status:'error', count:0, error:err.message };
-      errors.push(`Liquipedia: ${err.message}`);
+function scheduleBucketKey(match) {
+  const t = Date.parse(match?.startsAt || '');
+  return Number.isFinite(t) ? String(Math.floor(t / (30 * 60 * 1000))) : `invalid:${match?.id || ''}`;
+}
+
+function matchTeamKeys(match) {
+  return (match?.teams || []).slice(0, 2).map(t => nameKey(canonicalTeamName(t?.name || ''))).filter(Boolean);
+}
+
+function reconcileScheduleMatches(sourceLists) {
+  const named = new Map();
+  const tbd = new Map();
+
+  for (const src of sourceLists || []) {
+    const sourceKey = String(src?.key || 'unknown');
+    const sequence = Number(src?.sequence || 0);
+    const observedAt = src?.observedAt || null;
+    const evidence = src?.evidence !== false;
+    for (const raw of src?.matches || []) {
+      if (!raw?.startsAt || !Array.isArray(raw.teams) || raw.teams.length < 2) continue;
+      const match = { ...raw, teams: raw.teams.map(t => ({ ...t })) };
+      const bucket = scheduleBucketKey(match);
+      const names = match.teams.slice(0, 2).map(t => canonicalTeamName(t?.name || ''));
+      const hasTbd = names.some(n => !n || isPlaceholderTeamName(n));
+      const variant = { sourceKey, sequence, observedAt, evidence, match };
+
+      if (hasTbd) {
+        const slot = match.slotKey || `${match.stage || ''}:${match.id || ''}`;
+        const key = `${bucket}:tbd:${slot}`;
+        if (!tbd.has(key)) tbd.set(key, []);
+        tbd.get(key).push(variant);
+        continue;
+      }
+
+      const pairKey = openDotaPairKey(names[0], names[1]);
+      const key = `${bucket}:${pairKey}`;
+      if (!named.has(key)) named.set(key, { bucket, pairKey, teams:matchTeamKeys(match), variants:[] });
+      named.get(key).variants.push(variant);
     }
   }
 
-  let blastSchedule = [];
-  try {
-    blastSchedule = await fetchBlastSchedule();
-    sources.blastSchedule = { status:blastSchedule.length ? 'ok' : 'empty', count:blastSchedule.length, cacheTtlSeconds:Math.round(SCHEDULE_SOURCE_TTL_MS/1000) };
-  } catch (err) {
-    sources.blastSchedule = { status:'error', count:0, error:err.message };
-    errors.push(`BLAST schedule: ${err.message}`);
-  }
+  const claims = [...named.values()].map(claim => {
+    const variants = claim.variants.slice().sort((a,b) => b.sequence - a.sequence || Date.parse(b.observedAt || 0) - Date.parse(a.observedAt || 0));
+    const chosen = variants[0];
+    const supportSources = [...new Set(variants.filter(v => v.evidence).map(v => v.sourceKey))];
+    return { ...claim, chosen, latestSequence:chosen.sequence, supportSources, conflicts:[] };
+  });
 
-  let cybersportSchedule = [];
-  try {
-    cybersportSchedule = await fetchCybersportSchedule();
-    sources.cybersportSchedule = { status:cybersportSchedule.length ? 'ok' : 'empty', count:cybersportSchedule.length, cacheTtlSeconds:Math.round(SCHEDULE_SOURCE_TTL_MS/1000) };
-  } catch (err) {
-    sources.cybersportSchedule = { status:'error', count:0, error:err.message };
-    errors.push(`Cybersport schedule: ${err.message}`);
+  const selected = [];
+  const byBucket = new Map();
+  for (const claim of claims) {
+    if (!byBucket.has(claim.bucket)) byBucket.set(claim.bucket, []);
+    byBucket.get(claim.bucket).push(claim);
   }
-
-  let publicUpcoming = [];
-  if (!lp.matches.length && PUBLIC_FALLBACK_ENABLED) {
-    try {
-      publicUpcoming = await fetchPublicUpcoming();
-      sources.publicUpcoming = { status:'ok', count:publicUpcoming.length };
-    } catch (err) {
-      sources.publicUpcoming = { status:'error', count:0, error:err.message };
-      errors.push(`Public fallback: ${err.message}`);
+  for (const group of byBucket.values()) {
+    group.sort((a,b) => b.latestSequence - a.latestSequence);
+    const local = [];
+    for (const claim of group) {
+      const overlapping = local.find(x => x.teams.some(t => claim.teams.includes(t)));
+      if (overlapping) {
+        overlapping.conflicts.push(claim);
+        continue;
+      }
+      local.push(claim);
     }
-  } else if (lp.matches.length) {
-    sources.publicUpcoming = { status:'standby', count:0, reason:'liquipedia_available' };
+    selected.push(...local);
   }
 
-  let openDotaLeague = [];
-  try {
-    openDotaLeague = await fetchOpenDotaLeagueMatches();
-    sources.openDotaLeague = { status:'ok', leagueId:OPENDOTA_TI_LEAGUE_ID, count:openDotaLeague.length };
-  } catch (err) {
-    sources.openDotaLeague = { status:'error', leagueId:OPENDOTA_TI_LEAGUE_ID, count:0, error:err.message };
-    errors.push(`OpenDota league ${OPENDOTA_TI_LEAGUE_ID}: ${err.message}`);
+  const resolved = selected.map(claim => {
+    const supportCount = claim.supportSources.length;
+    const conflictAlternatives = claim.conflicts.map(c => ({
+      teams: c.chosen.match.teams.slice(0,2).map(t => canonicalTeamName(t?.name || '')),
+      source: c.chosen.sourceKey,
+      sources: c.supportSources,
+      observedAt: c.chosen.observedAt,
+      sequence: c.latestSequence
+    }));
+    let status = 'baseline';
+    if (supportCount >= 2) status = 'confirmed';
+    else if (conflictAlternatives.length) status = 'conflict-latest';
+    else if (supportCount === 1) status = 'provisional';
+    const chosenMatch = claim.chosen.match;
+    return {
+      ...chosenMatch,
+      source: claim.chosen.sourceKey === 'seed' ? (chosenMatch.source || 'seed') : (chosenMatch.source || claim.chosen.sourceKey),
+      verification: {
+        status,
+        sourceCount: supportCount,
+        sources: claim.supportSources,
+        chosenSource: claim.chosen.sourceKey,
+        observedAt: claim.chosen.observedAt,
+        sequence: claim.latestSequence,
+        conflict: conflictAlternatives.length > 0,
+        conflictAlternatives
+      }
+    };
+  });
+
+  for (const variants of tbd.values()) {
+    variants.sort((a,b) => b.sequence - a.sequence || Date.parse(b.observedAt || 0) - Date.parse(a.observedAt || 0));
+    const chosen = variants[0];
+    const supportSources = [...new Set(variants.filter(v => v.evidence).map(v => v.sourceKey))];
+    resolved.push({
+      ...chosen.match,
+      verification: {
+        status: supportSources.length >= 2 ? 'confirmed' : supportSources.length === 1 ? 'provisional' : 'baseline',
+        sourceCount: supportSources.length,
+        sources: supportSources,
+        chosenSource: chosen.sourceKey,
+        observedAt: chosen.observedAt,
+        sequence: chosen.sequence,
+        conflict:false,
+        conflictAlternatives:[]
+      }
+    });
   }
 
-  let openDotaPro = [];
-  try {
-    openDotaPro = await fetchOpenDotaProResults();
-    sources.openDotaProMatches = { status:'ok', count:openDotaPro.length };
-  } catch (err) {
-    sources.openDotaProMatches = { status:'error', count:0, error:err.message };
-    errors.push(`OpenDota proMatches: ${err.message}`);
+  return resolved.sort((a,b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+}
+
+async function refreshOneSource(key, { forceNetwork = false } = {}) {
+  const nowIso = new Date().toISOString();
+  const prev = sourceEntry(key) || {};
+  if (key === 'liquipedia' && !LIQUIPEDIA_API_KEY) {
+    sourceState.sources[key] = { ...prev, status:'disabled', reason:'missing_api_key', lastAttemptAt:nowIso, error:null };
+    writeSourceState();
+    return { key, status:'disabled', count:Array.isArray(prev.data) ? prev.data.length : 0 };
   }
+  if (key === 'publicUpcoming' && !PUBLIC_FALLBACK_ENABLED) {
+    sourceState.sources[key] = { ...prev, status:'disabled', reason:'disabled_by_config', lastAttemptAt:nowIso, error:null };
+    writeSourceState();
+    return { key, status:'disabled', count:Array.isArray(prev.data) ? prev.data.length : 0 };
+  }
+
+  try {
+    let data = [];
+    let meta = null;
+    if (key === 'liquipedia') {
+      const lp = await fetchLiquipediaMatches();
+      data = lp.matches;
+      meta = lp.meta;
+    } else if (key === 'blastSchedule') data = await fetchBlastSchedule(forceNetwork);
+    else if (key === 'cybersportSchedule') data = await fetchCybersportSchedule(forceNetwork);
+    else if (key === 'publicUpcoming') data = await fetchPublicUpcoming();
+    else if (key === 'openDotaLeague') data = await fetchOpenDotaLeagueMatches();
+    else if (key === 'openDotaProMatches') data = await fetchOpenDotaProResults();
+    else if (key === 'openDotaLive') data = await fetchOpenDotaLive();
+    else throw new Error(`unknown_source:${key}`);
+
+    sourceSequence += 1;
+    sourceState.sources[key] = {
+      status: Array.isArray(data) && data.length ? 'ok' : 'empty',
+      data: Array.isArray(data) ? data : [],
+      meta,
+      observedAt: nowIso,
+      lastAttemptAt: nowIso,
+      lastSuccessAt: nowIso,
+      sequence: sourceSequence,
+      error: null,
+      reason: null
+    };
+    writeSourceState();
+    return { key, status:sourceState.sources[key].status, count:sourceState.sources[key].data.length, sequence:sourceSequence };
+  } catch (err) {
+    sourceState.sources[key] = {
+      ...prev,
+      status:'error',
+      lastAttemptAt:nowIso,
+      error:err.message,
+      reason:null
+    };
+    writeSourceState();
+    return { key, status:'error', count:Array.isArray(prev.data) ? prev.data.length : 0, error:err.message };
+  }
+}
+
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function refreshSources(keys, { forceNetwork = false, staggerMs = 0 } = {}) {
+  const unique = [...new Set((keys || []).filter(Boolean))];
+  const results = [];
+  for (let i = 0; i < unique.length; i++) {
+    results.push(await refreshOneSource(unique[i], { forceNetwork }));
+    if (staggerMs > 0 && i < unique.length - 1) await sleep(staggerMs);
+  }
+  return results;
+}
+
+function buildPayloadFromSnapshots(refreshMeta = {}) {
+  const lpMatches = sourceData('liquipedia');
+  const blastSchedule = sourceData('blastSchedule');
+  const cybersportSchedule = sourceData('cybersportSchedule');
+  const publicUpcoming = sourceData('publicUpcoming');
+  const openDotaLeague = sourceData('openDotaLeague');
+  const openDotaPro = sourceData('openDotaProMatches');
+  const openDotaLive = sourceData('openDotaLive');
   const openDotaResults = mergeOpenDotaGameRows(openDotaLeague, openDotaPro);
 
-  let openDotaLive = [];
-  try {
-    openDotaLive = await fetchOpenDotaLive();
-    const tiLeagueIds = new Set([OPENDOTA_TI_LEAGUE_ID]);
-    const tiLive = openDotaLive.filter(r => isTiOpenDotaRow(r, tiLeagueIds));
-    sources.openDotaLive = { status:'ok', count:tiLive.length, totalReturned:openDotaLive.length };
-  } catch (err) {
-    sources.openDotaLive = { status:'error', count:0, error:err.message };
-    errors.push(`OpenDota live: ${err.message}`);
-  }
+  const scheduleMatches = reconcileScheduleMatches([
+    { key:'liquipedia', matches:lpMatches, sequence:sourceEntry('liquipedia')?.sequence || 0, observedAt:sourceEntry('liquipedia')?.observedAt || null, evidence:true },
+    { key:'blastSchedule', matches:blastSchedule, sequence:sourceEntry('blastSchedule')?.sequence || 0, observedAt:sourceEntry('blastSchedule')?.observedAt || null, evidence:true },
+    { key:'cybersportSchedule', matches:cybersportSchedule, sequence:sourceEntry('cybersportSchedule')?.sequence || 0, observedAt:sourceEntry('cybersportSchedule')?.observedAt || null, evidence:true },
+    { key:'publicUpcoming', matches:publicUpcoming, sequence:sourceEntry('publicUpcoming')?.sequence || 0, observedAt:sourceEntry('publicUpcoming')?.observedAt || null, evidence:true },
+    { key:'seed', matches:seed.matches || [], sequence:0, observedAt:null, evidence:false }
+  ]);
 
-  const mergedMatches = mergeMatches(seed.matches, publicUpcoming, cybersportSchedule, blastSchedule, lp.matches);
-  const scoredMatches = applyOpenDotaScores(mergedMatches, openDotaResults);
+  const scoredMatches = applyOpenDotaScores(scheduleMatches, openDotaResults);
   const matches = mergeOpenDotaSourcePairings(scoredMatches, openDotaResults, openDotaLive).map(decorateMatch);
   const teams = deriveTeams(matches);
   const standings = deriveStandings(matches, teams);
+  const sources = {
+    liquipedia: sourceHealth('liquipedia'),
+    blastSchedule: sourceHealth('blastSchedule', { cacheTtlSeconds:Math.round(SCHEDULE_SOURCE_TTL_MS/1000) }),
+    cybersportSchedule: sourceHealth('cybersportSchedule', { cacheTtlSeconds:Math.round(SCHEDULE_SOURCE_TTL_MS/1000) }),
+    publicUpcoming: sourceHealth('publicUpcoming'),
+    openDotaLeague: sourceHealth('openDotaLeague', { leagueId:OPENDOTA_TI_LEAGUE_ID }),
+    openDotaProMatches: sourceHealth('openDotaProMatches'),
+    openDotaLive: sourceHealth('openDotaLive')
+  };
+  const errors = Object.entries(sources).filter(([,v]) => v?.status === 'error' && v?.error).map(([k,v]) => `${k}: ${v.error}`);
+  const verificationSummary = matches.reduce((acc, m) => {
+    const s = m?.verification?.status || 'untracked';
+    acc[s] = (acc[s] || 0) + 1;
+    return acc;
+  }, { confirmed:0, provisional:0, 'conflict-latest':0, baseline:0, untracked:0 });
+
   const scheduleSourceParts = [];
-  if (lp.matches.length) scheduleSourceParts.push('liquipedia');
+  if (lpMatches.length) scheduleSourceParts.push('liquipedia');
   if (blastSchedule.length) scheduleSourceParts.push('blast');
   if (cybersportSchedule.length) scheduleSourceParts.push('cybersport');
   if (publicUpcoming.length) scheduleSourceParts.push('public');
   scheduleSourceParts.push('seed');
   const baseSource = [...new Set(scheduleSourceParts)].join('+');
   const source = openDotaResults.length ? `${baseSource}+opendota-league` : baseSource;
+  const lpMeta = sourceEntry('liquipedia')?.meta || { enabled:Boolean(LIQUIPEDIA_API_KEY), reason:LIQUIPEDIA_API_KEY ? null : 'missing_api_key' };
 
   return {
     event: seed.event,
@@ -1059,9 +1286,10 @@ async function buildPayload() {
     source,
     generatedAt: new Date().toISOString(),
     cacheTtlSeconds: Math.round(CACHE_TTL_MS / 1000),
+    refreshMeta,
     dataStatus: {
       liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY),
-      liquipedia: lp.meta,
+      liquipedia: lpMeta,
       publicFallbackEnabled: PUBLIC_FALLBACK_ENABLED,
       publicUpcomingCount: publicUpcoming.length,
       blastScheduleCount: blastSchedule.length,
@@ -1073,37 +1301,73 @@ async function buildPayload() {
       openDotaResultCount: openDotaResults.length,
       openDotaLiveCount: sources.openDotaLive.count,
       liveRefreshSeconds: LIVE_REFRESH_SECONDS,
+      sourceRotationSeconds: SOURCE_ROTATION_SECONDS,
+      fullReconcileSeconds: FULL_RECONCILE_SECONDS,
+      lastFullRefreshAt,
+      verificationSummary,
+      refreshPolicy: {
+        automatic:'partial-round-robin',
+        partialEverySeconds:SOURCE_ROTATION_SECONDS,
+        periodicFullEverySeconds:FULL_RECONCILE_SECONDS,
+        manualRefresh:'all-sources',
+        manualCooldownSeconds:Math.round(MANUAL_REFRESH_COOLDOWN_MS/1000),
+        fullRefreshStaggerMs:FULL_REFRESH_STAGGER_MS,
+        scheduleRotation:scheduleRotationKeys(),
+        runtimeRotation:RUNTIME_ROTATION_PATTERN
+      },
       seedCount: seed.matches.length,
       sources,
       errors
     },
-    attribution: `未来赛程按数据源优先级合并：Liquipedia LPDB > BLAST > Cybersport > 公共赛程 > 已公布本地基线；OpenDota league ${OPENDOTA_TI_LEAGUE_ID} + proMatches + live 用于开赛后的 Match ID、比分与实时状态。系统不根据瑞士轮战绩自行推算对阵。实时数据约 ${LIVE_REFRESH_SECONDS} 秒刷新，网页赛程源约 ${Math.round(SCHEDULE_SOURCE_TTL_MS/1000)} 秒缓存。`
+    attribution: `多源赛程采用“新数据先展示、后续多源复核”：任一来源发现新赛程即可进入页面；两个及以上独立来源一致时标记为已确认。若来源冲突，临时采用最近一次成功刷新的来源，同时保留冲突记录，等待后续来源复核。自动刷新每 ${SOURCE_ROTATION_SECONDS} 秒轮询部分来源，每 ${FULL_RECONCILE_SECONDS} 秒执行一次错峰全源复核；手动刷新会错峰刷新全部来源。OpenDota league ${OPENDOTA_TI_LEAGUE_ID} / proMatches / live 负责开赛后的 Match ID、比分与实时状态。系统不根据瑞士轮战绩自行推算对阵。`
   };
 }
 
-async function refresh(force = false) {
-  if (!force && cacheFresh(memoryCache)) return memoryCache;
-  if (refreshPromise) return refreshPromise;
-  refreshPromise = (async () => {
-    try {
-      const next = await buildPayload();
-      memoryCache = next;
-      writeDiskCache(next);
-      return next;
-    } catch (err) {
-      console.error('[refresh]', err);
-      if (memoryCache) return { ...memoryCache, stale: true, refreshError: err.message };
-      const fallback = await buildPayload().catch(() => ({
-        event: seed.event, teams: seed.teams, matches: seed.matches.map(decorateMatch), standings: deriveStandings(seed.matches, seed.teams), timeline: seed.timeline, chinaTeams: seed.chinaTeams || [], chinaTeamProfiles: seed.chinaTeamProfiles || [], streams: seed.streams || [], teamAssets: seed.teamAssets || {}, teamAssetMeta: seed.teamAssetMeta || {},
-        source: 'seed', generatedAt: new Date().toISOString(), stale: true, refreshError: err.message
-      }));
-      memoryCache = fallback;
-      return fallback;
-    } finally {
-      refreshPromise = null;
+async function runRefresh(mode = 'partial', options = {}) {
+  if (refreshPromise) {
+    await refreshPromise;
+    if (mode === 'full' && options.requireFreshFull) {
+      return runRefresh('full', { ...options, requireFreshFull:false });
     }
-  })();
+    return memoryCache;
+  }
+  const keys = mode === 'full' ? ALL_REFRESH_SOURCE_KEYS : nextAutoRefreshKeys();
+  currentRefreshMode = mode;
+  refreshPromise = (async () => {
+    const results = await refreshSources(keys, {
+      forceNetwork: options.forceNetwork === true,
+      staggerMs: mode === 'full' ? (options.staggerMs ?? FULL_REFRESH_STAGGER_MS) : 0
+    });
+    if (mode === 'full') {
+      lastFullRefreshAt = new Date().toISOString();
+      writeSourceState();
+    }
+    const next = buildPayloadFromSnapshots({
+      mode,
+      trigger:options.trigger || mode,
+      refreshedSources:keys,
+      sourceResults:results,
+      completedAt:new Date().toISOString()
+    });
+    memoryCache = next;
+    writeDiskCache(next);
+    return next;
+  })().finally(() => {
+    refreshPromise = null;
+    currentRefreshMode = null;
+  });
   return refreshPromise;
+}
+
+async function refresh(force = false) {
+  if (!force) {
+    if (memoryCache) return memoryCache;
+    const initial = buildPayloadFromSnapshots({ mode:'cache', trigger:'read', refreshedSources:[] });
+    memoryCache = initial;
+    writeDiskCache(initial);
+    return initial;
+  }
+  return runRefresh('full', { forceNetwork:true, staggerMs:FULL_REFRESH_STAGGER_MS, trigger:'manual', requireFreshFull:true });
 }
 
 function sendJson(res, status, obj) {
@@ -1136,7 +1400,7 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
     if (u.pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.3.9', dataDir: DATA_DIR, autoRefreshSeconds: Math.round(AUTO_REFRESH_INTERVAL_MS/1000), liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), openDotaLeagueId: OPENDOTA_TI_LEAGUE_ID, dataSources: memoryCache?.dataStatus?.sources || null, aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
+      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.4.0', dataDir: DATA_DIR, autoRefreshSeconds: SOURCE_ROTATION_SECONDS, fullReconcileSeconds: FULL_RECONCILE_SECONDS, liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), openDotaLeagueId: OPENDOTA_TI_LEAGUE_ID, dataSources: memoryCache?.dataStatus?.sources || null, aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
     }
     if (u.pathname === '/api/ti2026') {
       const data = await refresh(false);
@@ -1144,7 +1408,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (u.pathname === '/api/source-health') {
       const data = await refresh(false);
-      return sendJson(res, 200, { generatedAt:data.generatedAt, source:data.source, refreshSeconds:LIVE_REFRESH_SECONDS, sources:data.dataStatus?.sources || {}, errors:data.dataStatus?.errors || [] });
+      return sendJson(res, 200, { generatedAt:data.generatedAt, source:data.source, refreshSeconds:SOURCE_ROTATION_SECONDS, fullReconcileSeconds:FULL_RECONCILE_SECONDS, currentRefreshMode, refreshMeta:data.refreshMeta || null, refreshPolicy:data.dataStatus?.refreshPolicy || {}, verificationSummary:data.dataStatus?.verificationSummary || {}, sources:data.dataStatus?.sources || {}, errors:data.dataStatus?.errors || [] });
     }
     if (u.pathname === '/api/ai/status') {
       const seriesId = u.searchParams.get('id');
@@ -1223,7 +1487,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (u.pathname === '/api/refresh' && (req.method === 'POST' || req.method === 'GET')) {
       const now = Date.now();
-      if (now - lastManualRefreshAt < 30000) return sendJson(res, 429, { error: 'refresh_too_frequent', retryAfterSeconds: Math.ceil((30000 - (now - lastManualRefreshAt))/1000) });
+      if (now - lastManualRefreshAt < MANUAL_REFRESH_COOLDOWN_MS) return sendJson(res, 429, { error: 'refresh_too_frequent', retryAfterSeconds: Math.ceil((MANUAL_REFRESH_COOLDOWN_MS - (now - lastManualRefreshAt))/1000) });
       lastManualRefreshAt = now;
       const data = await refresh(true);
       return sendJson(res, 200, data);
@@ -1236,14 +1500,15 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`TI2026 观赛指南已启动: http://127.0.0.1:${PORT}`);
+  console.log(`TI2026 观赛指南 v1.4.0 已启动: http://127.0.0.1:${PORT}`);
   console.log(`Liquipedia API Key: ${LIQUIPEDIA_API_KEY ? '已配置' : '未配置（当前使用降级模式）'}`);
-  console.log(`赛程自动同步: 每 ${Math.round(AUTO_REFRESH_INTERVAL_MS/60000)} 分钟`);
-  setTimeout(() => refresh(false).catch(err => console.error('[startup-refresh]', err)), 2000).unref();
-  setInterval(() => refresh(true).then(d => console.log('[auto-refresh]', d.generatedAt, d.source)).catch(err => console.error('[auto-refresh]', err)), AUTO_REFRESH_INTERVAL_MS).unref();
+  console.log(`多源轮询: 每 ${SOURCE_ROTATION_SECONDS} 秒刷新部分来源；每 ${FULL_RECONCILE_SECONDS} 秒错峰全源复核`);
+  setTimeout(() => runRefresh('full', { forceNetwork:true, staggerMs:FULL_REFRESH_STAGGER_MS, trigger:'startup' }).then(d => console.log('[startup-full-refresh]', d.generatedAt, d.source)).catch(err => console.error('[startup-refresh]', err)), 1500).unref();
+  setInterval(() => runRefresh('partial', { forceNetwork:true, trigger:'auto-partial' }).then(d => console.log('[auto-partial]', d.refreshMeta?.refreshedSources?.join(','), d.generatedAt)).catch(err => console.error('[auto-partial]', err)), AUTO_REFRESH_INTERVAL_MS).unref();
+  setInterval(() => runRefresh('full', { forceNetwork:true, staggerMs:FULL_REFRESH_STAGGER_MS, trigger:'auto-full' }).then(d => console.log('[auto-full]', d.generatedAt, d.source)).catch(err => console.error('[auto-full]', err)), FULL_RECONCILE_INTERVAL_MS).unref();
 });
 
 module.exports = {
   normalizeLpDate, normalizeOpponent, normalizeLpMatch, mergeMatches,
-  deriveStandings, decorateMatch, isLikelyTi2026Match, extractMatchIds, normalizeDota2DbGame, canonicalTeamName
+  deriveStandings, decorateMatch, isLikelyTi2026Match, extractMatchIds, normalizeDota2DbGame, canonicalTeamName, reconcileScheduleMatches, scheduleBucketKey
 };
