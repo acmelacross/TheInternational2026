@@ -1,0 +1,57 @@
+name: Apply v1.4.1 AI async convergence fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/fix_ai_async_convergence_v141.py'
+      - '.github/workflows/apply-ai-async-v141.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply patch
+        run: python3 scripts/fix_ai_async_convergence_v141.py
+
+      - name: Static and regression validation
+        run: |
+          node --check public/ai-analysis.js
+          node --check server.js
+          python3 -m json.tool package.json >/dev/null
+          npm test
+          grep -q "version: '1.4.1'" server.js
+          grep -q 'ANALYSIS_POLL_INTERVAL_MS = 2000' public/ai-analysis.js
+          grep -q 'pollAnalysisCache' public/ai-analysis.js
+          grep -q 'syncLatestCacheOnResume' public/ai-analysis.js
+
+      - name: Runtime health validation
+        run: |
+          rm -rf /tmp/ti2026-v141
+          DATA_DIR=/tmp/ti2026-v141 PORT=17832 node server.js >/tmp/ti2026-v141.log 2>&1 &
+          echo $! >/tmp/ti2026-v141.pid
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:17832/api/health >/tmp/v141-health.json; then break; fi
+            sleep 1
+          done
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/v141-health.json'))
+          assert d['ok'] is True, d
+          assert d['version']=='1.4.1', d
+          print('V141_RUNTIME_OK', d['version'])
+          PY
+
+      - name: Commit verified fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/fix_ai_async_convergence_v141.py .github/workflows/apply-ai-async-v141.yml
+          git add public/ai-analysis.js package.json server.js tests.js
+          git commit -m "Release v1.4.1 fix AI analysis auto refresh"
+          git push
