@@ -1,0 +1,33 @@
+name: Check TI2026 latest published schedule
+on:
+  push:
+    paths:
+      - '.github/workflows/check-ti2026-latest.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch current published schedule snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, urllib.request
+          urls={
+            'xgoat':'https://ti.xgoat.top/api/schedule/wiki?year=2026',
+          }
+          for name,url in urls.items():
+            req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 TI2026 schedule checker','Accept':'application/json'})
+            with urllib.request.urlopen(req,timeout=25) as r:
+              d=json.load(r)
+            print('META',name,json.dumps({k:d.get(k) for k in ['source','fetchedAt','revisionAt','revisionId','stale','coverage']},ensure_ascii=False))
+            for st in d.get('stages',[]):
+              for rd in st.get('rounds',[]):
+                for m in rd.get('matches',[]):
+                  at=str(m.get('scheduledAt',''))
+                  if at >= '2026-08-15T08:00:00':
+                    print('MATCH',json.dumps({'stage':st.get('label'),'round':rd.get('title'),'id':m.get('id'),'scheduledAt':at,'status':m.get('status'),'bestOf':m.get('bestOf'),'opponents':m.get('opponents')},ensure_ascii=False))
+          PY
