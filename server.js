@@ -31,6 +31,8 @@ const LP_BASE = 'https://api.liquipedia.net/api/v3/';
 const PUBLIC_MATCHES_API = 'https://dota.haglund.dev/v1/matches';
 const BLAST_SCHEDULE_URL = String(process.env.BLAST_SCHEDULE_URL || 'https://blast.tv/dota/tournaments/the-international-2026/series').trim();
 const CYBERSPORT_SCHEDULE_URL = String(process.env.CYBERSPORT_SCHEDULE_URL || 'https://www.cybersport.ru/tournaments/dota-2/the-international-2026').trim();
+const XGOAT_SCHEDULE_API = String(process.env.XGOAT_SCHEDULE_API || 'https://ti.xgoat.top/api/schedule/wiki?year=2026').trim();
+const XGOAT_SCHEDULE_PAGE = String(process.env.XGOAT_SCHEDULE_PAGE || 'https://ti.xgoat.top/schedule').trim();
 const SCHEDULE_SOURCE_TTL_MS = Math.max(60, Number(process.env.SCHEDULE_SOURCE_TTL_SECONDS || 300)) * 1000;
 const scheduleSourceCache = new Map();
 const SOURCE_STATE_PATH = path.join(DATA_DIR, 'source-observations.json');
@@ -398,6 +400,80 @@ function normalizeLpMatch(row) {
     rawParent: row.parent || null,
     games: Array.isArray(row.match2games) ? row.match2games : [],
     matchIds: extractMatchIds(row.match2games)
+  };
+}
+
+function normalizeXgoatMatch(raw, stageLabel = 'The International 2026', roundTitle = '') {
+  const startsAt = normalizeLpDate(raw?.scheduledAt);
+  if (!startsAt || !scheduleInEventWindow(startsAt)) return null;
+  const ops = Array.isArray(raw?.opponents) ? raw.opponents.slice(0, 2) : [];
+  const teamFrom = (op) => {
+    const rawName = String(op?.name || op?.shortName || '').trim();
+    const name = !rawName || /^(?:TBD|TBA|待定)$/i.test(rawName) ? '待定' : canonicalTeamName(rawName);
+    const scoreRaw = op?.score;
+    const score = scoreRaw === null || scoreRaw === undefined || scoreRaw === '' ? null : Number(scoreRaw);
+    return { name, score:Number.isFinite(score) ? score : null, winner:false };
+  };
+  const teams = [teamFrom(ops[0]), teamFrom(ops[1])];
+  const rawStatus = String(raw?.status || '').toLowerCase();
+  let status = rawStatus === 'finished' ? 'finished' : rawStatus === 'live' || rawStatus === 'ongoing' ? 'live' : teams.some(t => isPlaceholderTeamName(t.name)) ? 'tbd' : 'upcoming';
+  if (status === 'finished' && teams.every(t => t.score !== null)) {
+    const max = Math.max(...teams.map(t => Number(t.score || 0)));
+    teams.forEach(t => { t.winner = Number(t.score || 0) === max; });
+  }
+  return {
+    id:`xgoat-${raw?.id || `${Date.parse(startsAt)}-${teams.map(t => nameKey(t.name)).join('-')}`}`,
+    startsAt,
+    stage:[stageLabel, roundTitle || raw?.group].filter(Boolean).join(' · '),
+    stream:null,
+    streamUrl:null,
+    bestOf:Number(raw?.bestOf || 3),
+    teams,
+    status,
+    source:'xgoat',
+    sourceUrl:XGOAT_SCHEDULE_PAGE,
+    xgoatMatchId:raw?.id || null,
+    matchIds:[]
+  };
+}
+
+async function fetchXgoatSchedule() {
+  const res = await fetch(XGOAT_SCHEDULE_API, {
+    headers:{
+      'Accept':'application/json',
+      'Accept-Language':'zh-CN,zh;q=0.9,en;q=0.8',
+      'User-Agent':`${APP_NAME}/1.4.2 (${CONTACT_EMAIL || 'TI2026 viewing guide'})`
+    },
+    signal:AbortSignal.timeout(18000)
+  });
+  if (!res.ok) throw new Error(`XGoat HTTP ${res.status}`);
+  const body = await res.json();
+  if (!body?.ok || !Array.isArray(body?.stages)) throw new Error('XGoat schedule payload invalid');
+  const rows=[];
+  for (const stage of body.stages) {
+    for (const round of stage?.rounds || []) {
+      for (const raw of round?.matches || []) {
+        const match=normalizeXgoatMatch(raw, stage?.label || stage?.id || 'The International 2026', round?.title || round?.id || raw?.group || '');
+        // XGoat 主要作为未来赛程发现源；历史已结束比赛交给 OpenDota，避免旧开赛时间差造成重复系列赛。
+        if (match && match.status !== 'finished') rows.push(match);
+      }
+    }
+  }
+  const dedupe=new Map();
+  for (const m of rows) dedupe.set(m.id,m);
+  return {
+    matches:[...dedupe.values()].sort((a,b)=>Date.parse(a.startsAt)-Date.parse(b.startsAt)),
+    meta:{
+      upstreamSource:body.source || null,
+      page:body.page || null,
+      fetchedAt:body.fetchedAt || null,
+      revisionAt:body.revisionAt || null,
+      revisionId:body.revisionId || null,
+      stale:Boolean(body.stale),
+      coverage:body.coverage || null,
+      eventId:body.eventId || null,
+      year:body.year || null
+    }
   };
 }
 
@@ -991,13 +1067,13 @@ function decorateMatch(match) {
 }
 
 
-const ALL_REFRESH_SOURCE_KEYS = ['liquipedia', 'blastSchedule', 'cybersportSchedule', 'publicUpcoming', 'openDotaLeague', 'openDotaProMatches', 'openDotaLive'];
+const ALL_REFRESH_SOURCE_KEYS = ['liquipedia', 'xgoatSchedule', 'blastSchedule', 'cybersportSchedule', 'publicUpcoming', 'openDotaLeague', 'openDotaProMatches', 'openDotaLive'];
 const RUNTIME_ROTATION_PATTERN = ['openDotaLive', 'openDotaLeague', 'openDotaLive', 'openDotaProMatches', 'openDotaLive'];
 
 function scheduleRotationKeys() {
   const keys = [];
   if (LIQUIPEDIA_API_KEY) keys.push('liquipedia');
-  keys.push('blastSchedule', 'cybersportSchedule');
+  keys.push('xgoatSchedule', 'blastSchedule', 'cybersportSchedule');
   if (PUBLIC_FALLBACK_ENABLED) keys.push('publicUpcoming');
   return keys;
 }
@@ -1051,6 +1127,7 @@ function reconcileScheduleMatches(sourceLists) {
 
   for (const src of sourceLists || []) {
     const sourceKey = String(src?.key || 'unknown');
+    const family = String(src?.family || sourceKey);
     const sequence = Number(src?.sequence || 0);
     const observedAt = src?.observedAt || null;
     const evidence = src?.evidence !== false;
@@ -1060,7 +1137,7 @@ function reconcileScheduleMatches(sourceLists) {
       const bucket = scheduleBucketKey(match);
       const names = match.teams.slice(0, 2).map(t => canonicalTeamName(t?.name || ''));
       const hasTbd = names.some(n => !n || isPlaceholderTeamName(n));
-      const variant = { sourceKey, sequence, observedAt, evidence, match };
+      const variant = { sourceKey, family, sequence, observedAt, evidence, match };
 
       if (hasTbd) {
         const slot = match.slotKey || `${match.stage || ''}:${match.id || ''}`;
@@ -1081,7 +1158,8 @@ function reconcileScheduleMatches(sourceLists) {
     const variants = claim.variants.slice().sort((a,b) => b.sequence - a.sequence || Date.parse(b.observedAt || 0) - Date.parse(a.observedAt || 0));
     const chosen = variants[0];
     const supportSources = [...new Set(variants.filter(v => v.evidence).map(v => v.sourceKey))];
-    return { ...claim, chosen, latestSequence:chosen.sequence, supportSources, conflicts:[] };
+    const supportFamilies = [...new Set(variants.filter(v => v.evidence).map(v => v.family))];
+    return { ...claim, chosen, latestSequence:chosen.sequence, supportSources, supportFamilies, conflicts:[] };
   });
 
   const selected = [];
@@ -1105,11 +1183,12 @@ function reconcileScheduleMatches(sourceLists) {
   }
 
   const resolved = selected.map(claim => {
-    const supportCount = claim.supportSources.length;
+    const supportCount = claim.supportFamilies.length;
     const conflictAlternatives = claim.conflicts.map(c => ({
       teams: c.chosen.match.teams.slice(0,2).map(t => canonicalTeamName(t?.name || '')),
       source: c.chosen.sourceKey,
       sources: c.supportSources,
+      families: c.supportFamilies,
       observedAt: c.chosen.observedAt,
       sequence: c.latestSequence
     }));
@@ -1125,6 +1204,7 @@ function reconcileScheduleMatches(sourceLists) {
         status,
         sourceCount: supportCount,
         sources: claim.supportSources,
+        families: claim.supportFamilies,
         chosenSource: claim.chosen.sourceKey,
         observedAt: claim.chosen.observedAt,
         sequence: claim.latestSequence,
@@ -1138,12 +1218,14 @@ function reconcileScheduleMatches(sourceLists) {
     variants.sort((a,b) => b.sequence - a.sequence || Date.parse(b.observedAt || 0) - Date.parse(a.observedAt || 0));
     const chosen = variants[0];
     const supportSources = [...new Set(variants.filter(v => v.evidence).map(v => v.sourceKey))];
+    const supportFamilies = [...new Set(variants.filter(v => v.evidence).map(v => v.family))];
     resolved.push({
       ...chosen.match,
       verification: {
-        status: supportSources.length >= 2 ? 'confirmed' : supportSources.length === 1 ? 'provisional' : 'baseline',
-        sourceCount: supportSources.length,
+        status: supportFamilies.length >= 2 ? 'confirmed' : supportFamilies.length === 1 ? 'provisional' : 'baseline',
+        sourceCount: supportFamilies.length,
         sources: supportSources,
+        families: supportFamilies,
         chosenSource: chosen.sourceKey,
         observedAt: chosen.observedAt,
         sequence: chosen.sequence,
@@ -1177,6 +1259,10 @@ async function refreshOneSource(key, { forceNetwork = false } = {}) {
       const lp = await fetchLiquipediaMatches();
       data = lp.matches;
       meta = lp.meta;
+    } else if (key === 'xgoatSchedule') {
+      const xgoat = await fetchXgoatSchedule();
+      data = xgoat.matches;
+      meta = xgoat.meta;
     } else if (key === 'blastSchedule') data = await fetchBlastSchedule(forceNetwork);
     else if (key === 'cybersportSchedule') data = await fetchCybersportSchedule(forceNetwork);
     else if (key === 'publicUpcoming') data = await fetchPublicUpcoming();
@@ -1226,6 +1312,7 @@ async function refreshSources(keys, { forceNetwork = false, staggerMs = 0 } = {}
 
 function buildPayloadFromSnapshots(refreshMeta = {}) {
   const lpMatches = sourceData('liquipedia');
+  const xgoatSchedule = sourceData('xgoatSchedule');
   const blastSchedule = sourceData('blastSchedule');
   const cybersportSchedule = sourceData('cybersportSchedule');
   const publicUpcoming = sourceData('publicUpcoming');
@@ -1235,11 +1322,12 @@ function buildPayloadFromSnapshots(refreshMeta = {}) {
   const openDotaResults = mergeOpenDotaGameRows(openDotaLeague, openDotaPro);
 
   const scheduleMatches = reconcileScheduleMatches([
-    { key:'liquipedia', matches:lpMatches, sequence:sourceEntry('liquipedia')?.sequence || 0, observedAt:sourceEntry('liquipedia')?.observedAt || null, evidence:true },
-    { key:'blastSchedule', matches:blastSchedule, sequence:sourceEntry('blastSchedule')?.sequence || 0, observedAt:sourceEntry('blastSchedule')?.observedAt || null, evidence:true },
-    { key:'cybersportSchedule', matches:cybersportSchedule, sequence:sourceEntry('cybersportSchedule')?.sequence || 0, observedAt:sourceEntry('cybersportSchedule')?.observedAt || null, evidence:true },
-    { key:'publicUpcoming', matches:publicUpcoming, sequence:sourceEntry('publicUpcoming')?.sequence || 0, observedAt:sourceEntry('publicUpcoming')?.observedAt || null, evidence:true },
-    { key:'seed', matches:seed.matches || [], sequence:0, observedAt:null, evidence:false }
+    { key:'liquipedia', family:'liquipedia', matches:lpMatches, sequence:sourceEntry('liquipedia')?.sequence || 0, observedAt:sourceEntry('liquipedia')?.observedAt || null, evidence:true },
+    { key:'xgoatSchedule', family:'liquipedia', matches:xgoatSchedule, sequence:sourceEntry('xgoatSchedule')?.sequence || 0, observedAt:sourceEntry('xgoatSchedule')?.observedAt || null, evidence:true },
+    { key:'blastSchedule', family:'blast', matches:blastSchedule, sequence:sourceEntry('blastSchedule')?.sequence || 0, observedAt:sourceEntry('blastSchedule')?.observedAt || null, evidence:true },
+    { key:'cybersportSchedule', family:'cybersport', matches:cybersportSchedule, sequence:sourceEntry('cybersportSchedule')?.sequence || 0, observedAt:sourceEntry('cybersportSchedule')?.observedAt || null, evidence:true },
+    { key:'publicUpcoming', family:'public-upcoming', matches:publicUpcoming, sequence:sourceEntry('publicUpcoming')?.sequence || 0, observedAt:sourceEntry('publicUpcoming')?.observedAt || null, evidence:true },
+    { key:'seed', family:'seed', matches:seed.matches || [], sequence:0, observedAt:null, evidence:false }
   ]);
 
   const scoredMatches = applyOpenDotaScores(scheduleMatches, openDotaResults);
@@ -1248,6 +1336,7 @@ function buildPayloadFromSnapshots(refreshMeta = {}) {
   const standings = deriveStandings(matches, teams);
   const sources = {
     liquipedia: sourceHealth('liquipedia'),
+    xgoatSchedule: sourceHealth('xgoatSchedule'),
     blastSchedule: sourceHealth('blastSchedule', { cacheTtlSeconds:Math.round(SCHEDULE_SOURCE_TTL_MS/1000) }),
     cybersportSchedule: sourceHealth('cybersportSchedule', { cacheTtlSeconds:Math.round(SCHEDULE_SOURCE_TTL_MS/1000) }),
     publicUpcoming: sourceHealth('publicUpcoming'),
@@ -1264,6 +1353,7 @@ function buildPayloadFromSnapshots(refreshMeta = {}) {
 
   const scheduleSourceParts = [];
   if (lpMatches.length) scheduleSourceParts.push('liquipedia');
+  if (xgoatSchedule.length) scheduleSourceParts.push('xgoat');
   if (blastSchedule.length) scheduleSourceParts.push('blast');
   if (cybersportSchedule.length) scheduleSourceParts.push('cybersport');
   if (publicUpcoming.length) scheduleSourceParts.push('public');
@@ -1292,6 +1382,7 @@ function buildPayloadFromSnapshots(refreshMeta = {}) {
       liquipedia: lpMeta,
       publicFallbackEnabled: PUBLIC_FALLBACK_ENABLED,
       publicUpcomingCount: publicUpcoming.length,
+      xgoatScheduleCount: xgoatSchedule.length,
       blastScheduleCount: blastSchedule.length,
       cybersportScheduleCount: cybersportSchedule.length,
       scheduleSourceTtlSeconds: Math.round(SCHEDULE_SOURCE_TTL_MS / 1000),
@@ -1319,7 +1410,7 @@ function buildPayloadFromSnapshots(refreshMeta = {}) {
       sources,
       errors
     },
-    attribution: `多源赛程采用“新数据先展示、后续多源复核”：任一来源发现新赛程即可进入页面；两个及以上独立来源一致时标记为已确认。若来源冲突，临时采用最近一次成功刷新的来源，同时保留冲突记录，等待后续来源复核。自动刷新每 ${SOURCE_ROTATION_SECONDS} 秒轮询部分来源，每 ${FULL_RECONCILE_SECONDS} 秒执行一次错峰全源复核；手动刷新会错峰刷新全部来源。OpenDota league ${OPENDOTA_TI_LEAGUE_ID} / proMatches / live 负责开赛后的 Match ID、比分与实时状态。系统不根据瑞士轮战绩自行推算对阵。`
+    attribution: `多源赛程采用“新数据先展示、后续多源复核”：任一来源发现新赛程即可进入页面；两个及以上独立来源族一致时标记为已确认。XGoat 作为 Liquipedia MediaWiki 的结构化镜像参与发现，但与 Liquipedia LPDB 归为同一来源族，不重复计票。若来源冲突，临时采用最近一次成功刷新的来源，同时保留冲突记录，等待后续来源复核。自动刷新每 ${SOURCE_ROTATION_SECONDS} 秒轮询部分来源，每 ${FULL_RECONCILE_SECONDS} 秒执行一次错峰全源复核；手动刷新会错峰刷新全部来源。OpenDota league ${OPENDOTA_TI_LEAGUE_ID} / proMatches / live 负责开赛后的 Match ID、比分与实时状态。系统不根据瑞士轮战绩自行推算对阵。`
   };
 }
 
@@ -1400,7 +1491,7 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
     if (u.pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.4.1', dataDir: DATA_DIR, autoRefreshSeconds: SOURCE_ROTATION_SECONDS, fullReconcileSeconds: FULL_RECONCILE_SECONDS, liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), openDotaLeagueId: OPENDOTA_TI_LEAGUE_ID, dataSources: memoryCache?.dataStatus?.sources || null, aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
+      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.4.2', dataDir: DATA_DIR, autoRefreshSeconds: SOURCE_ROTATION_SECONDS, fullReconcileSeconds: FULL_RECONCILE_SECONDS, liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), openDotaLeagueId: OPENDOTA_TI_LEAGUE_ID, dataSources: memoryCache?.dataStatus?.sources || null, aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
     }
     if (u.pathname === '/api/ti2026') {
       const data = await refresh(false);
@@ -1500,7 +1591,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`TI2026 观赛指南 v1.4.1 已启动: http://127.0.0.1:${PORT}`);
+  console.log(`TI2026 观赛指南 v1.4.2 已启动: http://127.0.0.1:${PORT}`);
   console.log(`Liquipedia API Key: ${LIQUIPEDIA_API_KEY ? '已配置' : '未配置（当前使用降级模式）'}`);
   console.log(`多源轮询: 每 ${SOURCE_ROTATION_SECONDS} 秒刷新部分来源；每 ${FULL_RECONCILE_SECONDS} 秒错峰全源复核`);
   setTimeout(() => runRefresh('full', { forceNetwork:true, staggerMs:FULL_REFRESH_STAGGER_MS, trigger:'startup' }).then(d => console.log('[startup-full-refresh]', d.generatedAt, d.source)).catch(err => console.error('[startup-refresh]', err)), 1500).unref();
@@ -1509,6 +1600,6 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = {
-  normalizeLpDate, normalizeOpponent, normalizeLpMatch, mergeMatches,
+  normalizeLpDate, normalizeOpponent, normalizeLpMatch, normalizeXgoatMatch, mergeMatches,
   deriveStandings, decorateMatch, isLikelyTi2026Match, extractMatchIds, normalizeDota2DbGame, canonicalTeamName, reconcileScheduleMatches, scheduleBucketKey
 };

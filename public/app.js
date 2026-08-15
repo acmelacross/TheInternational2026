@@ -89,11 +89,12 @@ async function load(force = false) {
 function render() {
   const d = state.data; if (!d) return;
   const hs=d.dataStatus?.sources||{};
-  const multiSchedule = (hs.blastSchedule?.count||0) + (hs.cybersportSchedule?.count||0) > 0;
+  const multiSchedule = (hs.xgoatSchedule?.count||0) + (hs.blastSchedule?.count||0) + (hs.cybersportSchedule?.count||0) > 0;
   const src = multiSchedule ? `多源赛程 + OpenDota ${d.dataStatus?.openDotaLeagueId||19719}` : String(d.source||'').includes('opendota') ? `已公布赛程 + OpenDota ${d.dataStatus?.openDotaLeagueId||19719}` : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : '内置赛程';
   $('#sourceBadge').textContent = src;
   const sourceCountText=(v,label)=>v?.status==='ok'?`${label} ${v.count??0}场`:v?.status==='empty'?`${label} 无新赛程`:v?.status==='disabled'?`${label} 未启用`:`${label} 异常`;
   const healthText=[
+    sourceCountText(hs.xgoatSchedule,'XGoat'),
     sourceCountText(hs.blastSchedule,'BLAST'),
     sourceCountText(hs.cybersportSchedule,'Cybersport'),
     `LPDB ${hs.liquipedia?.status==='ok'?'正常':hs.liquipedia?.status==='disabled'?'等待Key':'异常'}`,

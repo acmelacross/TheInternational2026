@@ -49,6 +49,28 @@ assert.equal(mod.canonicalTeamName('PARIVISION'),'Team VISION');
 assert.equal(mod.canonicalTeamName('BetBoom Team'),'BoomBoys');
 assert.equal(mod.canonicalTeamName('L1GA TEAM'),'HULIGANI');
 
+const xgoat = mod.normalizeXgoatMatch({
+  id:'parsed-test', scheduledAt:'2026-08-15T02:00:00.000Z', status:'scheduled', bestOf:3,
+  opponents:[{name:'LGD Gaming',score:null},{name:'Xtreme Gaming',score:null}]
+}, '小组赛', 'Round 4');
+assert.equal(xgoat.startsAt,'2026-08-15T02:00:00.000Z');
+assert.equal(xgoat.teams[0].name,'LGD Gaming');
+assert.equal(xgoat.teams[1].name,'Xtreme Gaming');
+assert.equal(xgoat.status,'upcoming');
+
+const sameFamily = mod.reconcileScheduleMatches([
+  {key:'liquipedia',family:'liquipedia',sequence:1,observedAt:'2026-08-15T01:00:00Z',evidence:true,matches:[xgoat]},
+  {key:'xgoatSchedule',family:'liquipedia',sequence:2,observedAt:'2026-08-15T01:01:00Z',evidence:true,matches:[xgoat]}
+]);
+assert.equal(sameFamily[0].verification.sourceCount,1);
+assert.equal(sameFamily[0].verification.status,'provisional');
+const independent = mod.reconcileScheduleMatches([
+  {key:'xgoatSchedule',family:'liquipedia',sequence:2,observedAt:'2026-08-15T01:01:00Z',evidence:true,matches:[xgoat]},
+  {key:'blastSchedule',family:'blast',sequence:3,observedAt:'2026-08-15T01:02:00Z',evidence:true,matches:[{...xgoat,source:'blast'}]}
+]);
+assert.equal(independent[0].verification.sourceCount,2);
+assert.equal(independent[0].verification.status,'confirmed');
+
 
 const t = '2026-08-15T02:00:00Z';
 const mk = (a,b,source) => ({ id:`${source}-${a}-${b}`, startsAt:t, stage:'瑞士轮 · 第4轮 · 1-2', bestOf:3, teams:[{name:a},{name:b}], status:'upcoming', source });
