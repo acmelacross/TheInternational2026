@@ -772,98 +772,98 @@
     },
     {
       "id": "seed-d4-elim-2000-1",
-      "startsAt": "2026-08-16T20:00:00+08:00",
-      "stage": "淘汰轮 · Match 1",
+      "startsAt": "2026-08-16T10:00:00+08:00",
+      "stage": "淘汰轮 · 3-2 对 2-3 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定（3-2）",
+          "name": "Team Falcons",
           "score": null
         },
         {
-          "name": "待定（2-3）",
+          "name": "Vici Gaming",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-d4-elim-2000-2",
-      "startsAt": "2026-08-16T20:00:00+08:00",
-      "stage": "淘汰轮 · Match 2",
+      "startsAt": "2026-08-16T10:00:00+08:00",
+      "stage": "淘汰轮 · 3-2 对 2-3 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定（3-2）",
+          "name": "Aurora Gaming",
           "score": null
         },
         {
-          "name": "待定（2-3）",
+          "name": "BoomBoys",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-d4-elim-2000-3",
-      "startsAt": "2026-08-16T20:00:00+08:00",
-      "stage": "淘汰轮 · Match 3",
+      "startsAt": "2026-08-16T13:00:00+08:00",
+      "stage": "淘汰轮 · 3-2 对 2-3 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定（3-2）",
+          "name": "Team Spirit",
           "score": null
         },
         {
-          "name": "待定（2-3）",
+          "name": "Team Resilience",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-d4-elim-2000-4",
-      "startsAt": "2026-08-16T20:00:00+08:00",
-      "stage": "淘汰轮 · Match 4",
+      "startsAt": "2026-08-16T13:00:00+08:00",
+      "stage": "淘汰轮 · 3-2 对 2-3 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定（3-2）",
+          "name": "Iron Wing",
           "score": null
         },
         {
-          "name": "待定（2-3）",
+          "name": "GamerLegion",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-d4-elim-2200-5",
-      "startsAt": "2026-08-16T22:00:00+08:00",
-      "stage": "淘汰轮 · Match 5",
+      "startsAt": "2026-08-16T16:00:00+08:00",
+      "stage": "淘汰轮 · 3-2 对 2-3 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定（3-2）",
+          "name": "LGD Gaming",
           "score": null
         },
         {
-          "name": "待定（2-3）",
+          "name": "Team Yandex",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     }
   ],
   "timeline": [
@@ -884,8 +884,8 @@
     },
     {
       "date": "2026-08-16",
-      "title": "生死轮",
-      "detail": "淘汰轮共 5 场 BO3；BLAST 已发布北京时间 20:00 四场、22:00 一场的赛程位。具体对阵仍为 TBD，等待数据源正式发布后再同步，不根据瑞士轮战绩自行推算。"
+      "title": "淘汰轮",
+      "detail": "淘汰轮 5 场 BO3 已由 Liquipedia MediaWiki 明确发布：10:00 Falcons vs Vici、Aurora vs BoomBoys；13:00 Spirit vs Resilience、Iron Wing vs GamerLegion；16:00 LGD vs Yandex。网站仅同步已发布对阵，不根据瑞士轮战绩自行推算。"
     },
     {
       "date": "2026-08-17",
