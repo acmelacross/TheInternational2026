@@ -864,6 +864,120 @@
       ],
       "status": "upcoming",
       "source": "liquipedia-mediawiki-published"
+    },
+    {
+      "id": "seed-main-d1-lbr1-1",
+      "startsAt": "2026-08-20T20:00:00+08:00",
+      "stage": "主赛事 · 败者组第1轮 1",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-main-d1-lbr1-2",
+      "startsAt": "2026-08-20T20:00:00+08:00",
+      "stage": "主赛事 · 败者组第1轮 2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-main-d1-ubqf-1",
+      "startsAt": "2026-08-20T20:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 1",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-main-d1-ubqf-2",
+      "startsAt": "2026-08-20T20:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-main-d1-ubqf-3",
+      "startsAt": "2026-08-20T20:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 3",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-main-d1-ubqf-4",
+      "startsAt": "2026-08-20T20:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 4",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
     }
   ],
   "timeline": [
@@ -905,7 +1019,7 @@
     {
       "date": "2026-08-20",
       "title": "主赛事 Day 1",
-      "detail": "8 强双败淘汰赛"
+      "detail": "BLAST 已发布主赛事首日 6 个 BO3 赛程位：北京时间 20:00 为 4 场胜者组四分之一决赛与 2 场败者组第1轮；具体对阵仍为 TBD，网站不根据淘汰轮结果自行推算。"
     },
     {
       "date": "2026-08-21",
