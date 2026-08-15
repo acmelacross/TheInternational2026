@@ -7,18 +7,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch current XGoat/Liquipedia schedule
+      - name: Compare current schedule with repository seed
         run: |
           python3 - <<'PY'
           import json, urllib.request
+          seed=json.load(open('data/seed.json'))
+          print('SEED_AUG15')
+          for m in seed.get('matches',[]):
+            if str(m.get('startsAt','')).startswith('2026-08-15'):
+              print(json.dumps({'id':m.get('id'),'startsAt':m.get('startsAt'),'stage':m.get('stage'),'status':m.get('status'),'teams':[t.get('name') for t in m.get('teams',[])[:2]]},ensure_ascii=False))
           u='https://ti.xgoat.top/api/schedule/wiki?year=2026'
           req=urllib.request.Request(u,headers={'User-Agent':'TI2026ScheduleCheck/1.0','Accept':'application/json'})
           with urllib.request.urlopen(req,timeout=25) as r: d=json.load(r)
           print('META',json.dumps({k:d.get(k) for k in ['fetchedAt','revisionAt','revisionId','stale','coverage']},ensure_ascii=False))
+          print('SOURCE_ROUND5')
           for st in d.get('stages',[]):
             for rd in st.get('rounds',[]):
-              title=rd.get('title','')
-              if title in ('Round 4','Round 5'):
+              if rd.get('title')=='Round 5':
                 for m in rd.get('matches',[]):
-                  print(title, json.dumps({'scheduledAt':m.get('scheduledAt'),'status':m.get('status'),'opponents':[(o.get('name'),o.get('score')) for o in m.get('opponents',[])]},ensure_ascii=False))
+                  print(json.dumps({'id':m.get('id'),'scheduledAt':m.get('scheduledAt'),'status':m.get('status'),'opponents':[(o.get('name'),o.get('score')) for o in m.get('opponents',[])]},ensure_ascii=False))
           PY
