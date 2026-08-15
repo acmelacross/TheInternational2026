@@ -43,7 +43,7 @@ const TEAM_NAME_ALIASES = new Map([
   ['1w', 'Iron Wing'], ['1wteam', 'Iron Wing'], ['1win', 'Iron Wing'], ['1winteam', 'Iron Wing'], ['tundraesports', 'Iron Wing'],
   ['parivision', 'Team VISION'], ['teamvision', 'Team VISION'],
   ['betboom', 'BoomBoys'], ['betboomteam', 'BoomBoys'], ['bbteam', 'BoomBoys'],
-  ['l1ga', 'HULIGANI'], ['l1gateam', 'HULIGANI'],
+  ['l1ga', 'HULIGANI'], ['l1gateam', 'HULIGANI'], ['lgd', 'LGD Gaming'],
   ['aurora', 'Aurora Gaming'], ['vg', 'Vici Gaming'], ['nigma', 'Nigma Galaxy'],
   ['resilience', 'Team Resilience'], ['yandex', 'Team Yandex'], ['xtreme', 'Xtreme Gaming'],
   ['falcons', 'Team Falcons'], ['liquid', 'Team Liquid'], ['spirit', 'Team Spirit']

@@ -6,7 +6,7 @@ const TEAM_ALIASES = {
   '1w': 'Iron Wing', '1w team': 'Iron Wing', '1win': 'Iron Wing', '1win team': 'Iron Wing', 'tundra esports': 'Iron Wing',
   'parivision': 'Team VISION', 'team vision': 'Team VISION',
   'betboom': 'BoomBoys', 'betboom team': 'BoomBoys', 'bb team': 'BoomBoys',
-  'l1ga': 'HULIGANI', 'l1ga team': 'HULIGANI', 'aurora': 'Aurora Gaming',
+  'l1ga': 'HULIGANI', 'l1ga team': 'HULIGANI', 'lgd': 'LGD Gaming', 'aurora': 'Aurora Gaming',
   'vg': 'Vici Gaming', 'nigma': 'Nigma Galaxy', 'resilience': 'Team Resilience', 'yandex': 'Team Yandex',
   'xtreme': 'Xtreme Gaming', 'falcons': 'Team Falcons', 'liquid': 'Team Liquid', 'spirit': 'Team Spirit'
 };
