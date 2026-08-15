@@ -1,0 +1,90 @@
+name: Apply v1.4.2 XGoat source
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_xgoat_v142.py'
+      - '.github/workflows/apply-xgoat-v142.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply XGoat integration
+        run: |
+          python3 scripts/apply_xgoat_v142.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('server.js')
+          s=p.read_text()
+          old='        if (match) rows.push(match);'
+          new="        // XGoat 主要作为未来赛程发现源；历史已结束比赛交给 OpenDota，避免旧开赛时间差造成重复系列赛。\n        if (match && match.status !== 'finished') rows.push(match);"
+          assert old in s
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: Static and regression validation
+        run: |
+          node --check server.js
+          node --check public/app.js
+          node --check public/ai-analysis.js
+          python3 -m json.tool package.json >/dev/null
+          npm test
+          grep -q "version: '1.4.2'" server.js
+          grep -q "xgoatSchedule" server.js
+          grep -q "XGoat" public/app.js
+      - name: Real XGoat and multi-source refresh test
+        run: |
+          rm -rf /tmp/ti2026-v142
+          DATA_DIR=/tmp/ti2026-v142 PORT=17834 SOURCE_ROTATION_INTERVAL_SECONDS=60 FULL_RECONCILE_INTERVAL_SECONDS=600 FULL_REFRESH_STAGGER_MS=120 SCHEDULE_SOURCE_TTL_SECONDS=60 node server.js >/tmp/ti2026-v142.log 2>&1 &
+          echo $! >/tmp/ti2026-v142.pid
+          for i in $(seq 1 25); do
+            if curl -fsS http://127.0.0.1:17834/api/health >/tmp/v142-health.json; then break; fi
+            sleep 1
+          done
+          curl -fsS --max-time 100 -X POST http://127.0.0.1:17834/api/refresh -o /tmp/v142-payload.json
+          curl -fsS http://127.0.0.1:17834/api/source-health -o /tmp/v142-source-health.json
+          python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/v142-health.json'))
+          p=json.load(open('/tmp/v142-payload.json'))
+          sh=json.load(open('/tmp/v142-source-health.json'))
+          assert h['version']=='1.4.2',h
+          src=p['dataStatus']['sources']
+          x=src['xgoatSchedule']
+          assert x['status']=='ok',x
+          assert x['count']>=8,x
+          assert x.get('meta',{}).get('upstreamSource')=='Liquipedia MediaWiki API',x
+          assert 'xgoatSchedule' in p['refreshMeta']['refreshedSources'],p['refreshMeta']
+          assert 'xgoatSchedule' in p['dataStatus']['refreshPolicy']['scheduleRotation']
+          assert 'xgoatSchedule' in sh['sources']
+          # Current Aug-15 named pairings must be discoverable without duplicating the same time/pair.
+          wanted={
+            tuple(sorted(x)) for x in [
+              ('LGD Gaming','Xtreme Gaming'),('Team Falcons','GamerLegion'),('Team Resilience','Team Yandex'),('OG','HULIGANI'),
+              ('Team VISION','Team Spirit'),('Iron Wing','Team Liquid'),('BoomBoys','Aurora Gaming'),('Nigma Galaxy','Vici Gaming')
+            ]
+          }
+          got=[]
+          for m in p.get('matches',[]):
+            if not str(m.get('startsAt','')).startswith('2026-08-15'): continue
+            names=[t.get('name') for t in m.get('teams',[])[:2]]
+            if len(names)==2 and all(names) and not any(str(n).startswith('待定') for n in names):
+              got.append(tuple(sorted(names)))
+          assert wanted.issubset(set(got)),(wanted-set(got),got)
+          assert got.count(tuple(sorted(('LGD Gaming','Xtreme Gaming'))))==1,got
+          print('V142_XGOAT_OK')
+          print('XGOAT=',x)
+          print('VERIFY=',p['dataStatus']['verificationSummary'])
+          print('ROTATION=',p['dataStatus']['refreshPolicy']['scheduleRotation'])
+          print('AUG15_NAMED=',got)
+          PY
+      - name: Commit verified v1.4.2
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/inspect_xgoat_source.py .github/workflows/inspect-xgoat-source.yml scripts/apply_xgoat_v142.py .github/workflows/apply-xgoat-v142.yml
+          git add server.js public/app.js package.json .env.example tests.js
+          git commit -m "Release v1.4.2 add XGoat schedule source"
+          git push
