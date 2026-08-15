@@ -3,10 +3,12 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const CHINA = new Set(['xtreme gaming', 'team resilience', 'vici gaming']);
 const TEAM_ALIASES = {
-  '1w team': 'Iron Wing', '1win team': 'Iron Wing', 'tundra esports': 'Iron Wing',
+  '1w': 'Iron Wing', '1w team': 'Iron Wing', '1win': 'Iron Wing', '1win team': 'Iron Wing', 'tundra esports': 'Iron Wing',
   'parivision': 'Team VISION', 'team vision': 'Team VISION',
-  'betboom team': 'BoomBoys', 'bb team': 'BoomBoys',
-  'l1ga team': 'HULIGANI', 'aurora': 'Aurora Gaming'
+  'betboom': 'BoomBoys', 'betboom team': 'BoomBoys', 'bb team': 'BoomBoys',
+  'l1ga': 'HULIGANI', 'l1ga team': 'HULIGANI', 'aurora': 'Aurora Gaming',
+  'vg': 'Vici Gaming', 'nigma': 'Nigma Galaxy', 'resilience': 'Team Resilience', 'yandex': 'Team Yandex',
+  'xtreme': 'Xtreme Gaming', 'falcons': 'Team Falcons', 'liquid': 'Team Liquid', 'spirit': 'Team Spirit'
 };
 const fmtDate = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric', weekday: 'short' });
 const fmtFull = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -78,13 +80,16 @@ async function load(force = false) {
 
 function render() {
   const d = state.data; if (!d) return;
-  const src = String(d.source||'').includes('opendota') ? `已公布赛程 + OpenDota ${d.dataStatus?.openDotaLeagueId||19719}` : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : d.source === 'public+seed' ? '公共赛程 + 内置' : '内置赛程';
-  $('#sourceBadge').textContent = src;
   const hs=d.dataStatus?.sources||{};
+  const multiSchedule = (hs.blastSchedule?.count||0) + (hs.cybersportSchedule?.count||0) > 0;
+  const src = multiSchedule ? `多源赛程 + OpenDota ${d.dataStatus?.openDotaLeagueId||19719}` : String(d.source||'').includes('opendota') ? `已公布赛程 + OpenDota ${d.dataStatus?.openDotaLeagueId||19719}` : d.source === 'liquipedia' ? 'Liquipedia 自动更新' : '内置赛程';
+  $('#sourceBadge').textContent = src;
+  const sourceCountText=(v,label)=>v?.status==='ok'?`${label} ${v.count??0}场`:v?.status==='empty'?`${label} 无新赛程`:v?.status==='disabled'?`${label} 未启用`:`${label} 异常`;
   const healthText=[
+    sourceCountText(hs.blastSchedule,'BLAST'),
+    sourceCountText(hs.cybersportSchedule,'Cybersport'),
     `LPDB ${hs.liquipedia?.status==='ok'?'正常':hs.liquipedia?.status==='disabled'?'等待Key':'异常'}`,
     `OD赛事 ${hs.openDotaLeague?.status==='ok'?(hs.openDotaLeague.count??0)+'局':'异常'}`,
-    `Pro ${hs.openDotaProMatches?.status==='ok'?(hs.openDotaProMatches.count??0)+'局':'异常'}`,
     `Live ${hs.openDotaLive?.status==='ok'?(hs.openDotaLive.count??0)+'场':'异常'}`
   ].join(' · ');
   const sourceErrors=Object.entries(hs).filter(([,v])=>v?.error).map(([k,v])=>`${k}: ${v.error}`);
