@@ -1,0 +1,33 @@
+name: Sync TI2026 Aug 20 playoff slots
+on:
+  push:
+    paths:
+      - 'scripts/sync_aug20_playoff_slots.py'
+      - '.github/workflows/sync-aug20-playoff-slots.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply schedule update
+        run: python3 scripts/sync_aug20_playoff_slots.py
+      - name: Validate JSON and JS
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          test -z "$(git diff --name-only -- public/assets/teams-normal)"
+      - name: Commit verified update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/sync_aug20_playoff_slots.py .github/workflows/sync-aug20-playoff-slots.yml
+          git add data/seed.json
+          git commit -m "Sync published TI2026 Aug 20 playoff slots"
+          git push
