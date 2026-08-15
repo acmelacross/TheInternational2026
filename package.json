@@ -1,8 +1,8 @@
 {
   "name": "ti2026-viewing-guide",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
-  "description": "TI2026 Dota 2 观赛指南 v1.4：多源轮询、最新源冲突临时展示、双源复核、OpenDota 实时赛况与 Linux 部署",
+  "description": "TI2026 Dota 2 观赛指南 v1.4.1：多源轮询与复核 + 首次多模型分析自动收敛显示 + OpenDota 实时赛况与 Linux 部署",
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",

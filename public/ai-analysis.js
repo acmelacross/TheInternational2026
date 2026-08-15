@@ -4,6 +4,10 @@
   const esc = s => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const q = new URLSearchParams(location.search);
   const seriesId = q.get('id');
+  const ANALYSIS_POLL_INTERVAL_MS = 2000;
+  const ANALYSIS_MAX_WAIT_MS = 8 * 60 * 1000;
+  let analysisLoadPromise = null;
+  let lastRenderedCacheToken = '';
 
   function statusClass(state){ return state === 'connected' || state === 'ok' ? 'ok' : state === 'failed' || state === 'error' ? 'bad' : state === 'unconfigured' ? 'off' : 'wait'; }
   function statusText(state){ return ({connected:'已连通',ok:'已连通',failed:'失败',error:'失败',unconfigured:'未配置',untested:'待首次调用'})[state] || '待检测'; }
@@ -75,10 +79,76 @@
       const r=await fetch(`/api/ai/status?id=${encodeURIComponent(seriesId)}`,{cache:'no-store'});
       const d=await readApiJson(r,'AI 状态接口');
       renderStatuses(d);
-    }catch(e){ console.warn(e); }
+      return d;
+    }catch(e){ console.warn(e); return null; }
   }
 
-  async function loadAnalysis(){
+  function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+  function cacheRenderToken(d){
+    return JSON.stringify({
+      generatedAt:d?.generatedAt||d?.cacheGeneratedAt||'',
+      complete:Boolean(d?.complete),
+      models:(d?.models||[]).map(m=>[m?.id,m?.status,m?.cached,Number(m?.manualRetryCount)||0])
+    });
+  }
+  function modelProgress(d){
+    const models=(d?.models||[]).filter(m=>m?.status!=='unconfigured');
+    const done=models.filter(m=>m?.status==='ok'||m?.status==='error').length;
+    return {done,total:models.length};
+  }
+  function renderLatestCache(d, message){
+    if(!d?.found) return false;
+    const token=cacheRenderToken(d);
+    if(token!==lastRenderedCacheToken){
+      lastRenderedCacheToken=token;
+      renderAnalysis(d);
+    }
+    const note=$('#aiAnalysisState');
+    if(note && message) note.textContent=message;
+    return true;
+  }
+
+  async function pollAnalysisCache(deadline){
+    let lastFound=null;
+    let consecutiveErrors=0;
+    while(Date.now()<deadline){
+      try{
+        const latest=await fetchCache();
+        consecutiveErrors=0;
+        if(latest.found){
+          lastFound=latest;
+          const p=modelProgress(latest);
+          if(latest.complete){
+            renderLatestCache(latest,'多模型分析已完成，页面已自动读取服务器本地缓存。');
+            await loadStatus();
+            return {complete:true,data:latest};
+          }
+          renderLatestCache(latest,`后台仍在生成：已完成 ${p.done}/${p.total || '?'} 个模型，页面会自动更新，无需手动刷新。`);
+        }
+      }catch(e){
+        consecutiveErrors++;
+        if(consecutiveErrors===1) console.warn('[ai-cache-poll]',e);
+      }
+      await wait(ANALYSIS_POLL_INTERVAL_MS);
+    }
+    return {complete:false,data:lastFound,timeout:true};
+  }
+
+  async function syncLatestCacheOnResume(){
+    if(!seriesId) return;
+    try{
+      const latest=await fetchCache();
+      if(!latest.found) return;
+      if(latest.complete) renderLatestCache(latest,'多模型分析已完成，已自动同步服务器本地缓存。');
+      else {
+        const p=modelProgress(latest);
+        renderLatestCache(latest,`分析仍在后台进行：已完成 ${p.done}/${p.total || '?'} 个模型。`);
+      }
+      await loadStatus();
+    }catch(e){ console.warn('[ai-resume-sync]',e); }
+  }
+
+  async function loadAnalysisCore(){
     if(!seriesId) return;
     const grid=$('#aiAnalysisGrid'); const note=$('#aiAnalysisState');
     let hadCached=false;
@@ -86,29 +156,73 @@
       const cached=await fetchCache();
       if(cached.found){
         hadCached=true;
-        renderAnalysis(cached);
+        renderLatestCache(cached);
         if(cached.complete){
           if(note) note.textContent='已直接读取持久化本地缓存，本次没有调用任何大模型 API。';
           await loadStatus();
           return;
         }
-        if(note) note.textContent='已先显示服务器本地缓存；仅补齐尚未缓存或格式版本已变化的平台。';
+        if(note) note.textContent='已先显示服务器本地缓存；后台会补齐缺少的平台，页面每 2 秒自动同步。';
       }else{
-        if(note) note.textContent='本场暂无服务器本地分析缓存，将对已配置模型各调用一次并持久缓存。';
-        if(grid) grid.innerHTML='<div class="ai-loading"><span></span><b>首次生成多模型分析</b><p>仅首次可能需要几十秒，完成后所有访客都直接读取服务器本地缓存。</p></div>';
+        if(note) note.textContent='本场暂无服务器本地分析缓存，将对已配置模型各调用一次；页面会持续自动同步结果。';
+        if(grid) grid.innerHTML='<div class="ai-loading"><span></span><b>首次生成多模型分析</b><p>仅首次可能需要几十秒；完成后页面会自动显示，无需手动刷新。</p></div>';
       }
 
-      const r=await fetch(`/api/ai/analysis?id=${encodeURIComponent(seriesId)}`,{method:'POST',cache:'no-store'});
-      const d=await readApiJson(r,'AI 分析接口');
-      renderAnalysis(d);
-      await loadStatus();
+      const deadline=Date.now()+ANALYSIS_MAX_WAIT_MS;
+      const pollPromise=pollAnalysisCache(deadline);
+      const requestPromise=(async()=>{
+        try{
+          const r=await fetch(`/api/ai/analysis?id=${encodeURIComponent(seriesId)}`,{method:'POST',cache:'no-store'});
+          const d=await readApiJson(r,'AI 分析接口');
+          return {kind:'request',ok:true,data:d};
+        }catch(error){
+          return {kind:'request',ok:false,error};
+        }
+      })();
+
+      let first=await Promise.race([
+        requestPromise,
+        pollPromise.then(x=>({kind:'poll',...x}))
+      ]);
+
+      if(first.kind==='request' && first.ok){
+        renderLatestCache(first.data,'多模型分析已完成并写入服务器本地缓存。');
+        await loadStatus();
+        return;
+      }
+      if(first.kind==='poll' && first.complete){
+        return;
+      }
+
+      if(first.kind==='request' && !first.ok){
+        if(note) note.textContent=`AI 请求连接已结束（${first.error.message}），后台任务可能仍在继续；正在持续读取服务器缓存，无需刷新页面。`;
+        const converged=await pollPromise;
+        if(converged.complete) return;
+        if(converged.data){
+          renderLatestCache(converged.data,'后台分析尚未全部完成；已显示当前缓存结果，可稍后自动继续同步。');
+          return;
+        }
+        throw first.error;
+      }
+
+      // 轮询达到总等待上限时，不让页面永久保持 loading；再给原请求一个短暂收尾窗口。
+      const tail=await Promise.race([requestPromise,wait(10000).then(()=>({kind:'tail-timeout'}))]);
+      if(tail?.kind==='request' && tail.ok){
+        renderLatestCache(tail.data,'多模型分析已完成并写入服务器本地缓存。');
+        await loadStatus();
+        return;
+      }
+      const latest=await fetchCache().catch(()=>null);
+      if(latest?.found){
+        renderLatestCache(latest,latest.complete?'多模型分析已完成，已自动同步服务器缓存。':'分析耗时较长，已显示当前缓存结果；切回本页时会继续自动同步。');
+        return;
+      }
+      throw tail?.error || new Error('多模型分析等待超时，后台任务可能仍在继续');
     }catch(e){
-      // Nginx/网关超时时，Node 后端可能仍在继续生成并落盘；立即再读一次服务器缓存。
       try{
         const latest=await fetchCache();
         if(latest.found){
-          renderAnalysis(latest);
-          if(note) note.textContent=`AI 请求返回异常，但已重新读取服务器本地缓存：${e.message}`;
+          renderLatestCache(latest,latest.complete?'请求异常后已自动读取完整服务器缓存。':`请求异常，但已显示服务器当前缓存：${e.message}`);
           await loadStatus();
           return;
         }
@@ -116,6 +230,13 @@
       if(grid && (!hadCached || !grid.children.length)) grid.innerHTML=`<div class="empty">AI 分析读取失败：${esc(e.message)}</div>`;
       if(note) note.textContent=`AI 分析服务异常：${e.message}`;
     }
+  }
+
+  async function loadAnalysis(){
+    if(!seriesId) return;
+    if(analysisLoadPromise) return analysisLoadPromise;
+    analysisLoadPromise=loadAnalysisCore().finally(()=>{ analysisLoadPromise=null; });
+    return analysisLoadPromise;
   }
   async function retryModel(providerId, button){
     if(!seriesId || !providerId || !button) return;
@@ -145,5 +266,12 @@
       retryModel(button.dataset.aiRetry,button);
     });
   }
-  window.addEventListener('DOMContentLoaded',()=>{ bindRetryButtons(); loadStatus(); setTimeout(loadAnalysis,120); });
+  window.addEventListener('DOMContentLoaded',()=>{
+    bindRetryButtons();
+    loadStatus();
+    setTimeout(loadAnalysis,120);
+  });
+  window.addEventListener('focus',()=>{ syncLatestCacheOnResume(); });
+  window.addEventListener('pageshow',()=>{ syncLatestCacheOnResume(); });
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) syncLatestCacheOnResume(); });
 })();

@@ -79,5 +79,11 @@ assert.deepEqual(confirmedAfterRecheck[0].teams.map(x=>x.name),['Xtreme Gaming',
 assert.equal(confirmedAfterRecheck[0].verification.status,'confirmed');
 assert.equal(confirmedAfterRecheck[0].verification.sourceCount,2);
 
+const aiUiSource = require('fs').readFileSync(require('path').join(__dirname,'public','ai-analysis.js'),'utf8');
+assert(aiUiSource.includes('pollAnalysisCache'), 'AI UI must poll server cache while long analysis runs');
+assert(aiUiSource.includes('ANALYSIS_POLL_INTERVAL_MS = 2000'), 'AI UI polling interval regression');
+assert(aiUiSource.includes('syncLatestCacheOnResume'), 'AI UI must resync cache when page resumes');
+assert(aiUiSource.includes("window.addEventListener('focus'"), 'AI UI focus resync hook missing');
+
 console.log('All tests passed.');
 process.exit(0);

@@ -1400,7 +1400,7 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   try {
     if (u.pathname === '/api/health') {
-      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.4.0', dataDir: DATA_DIR, autoRefreshSeconds: SOURCE_ROTATION_SECONDS, fullReconcileSeconds: FULL_RECONCILE_SECONDS, liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), openDotaLeagueId: OPENDOTA_TI_LEAGUE_ID, dataSources: memoryCache?.dataStatus?.sources || null, aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
+      return sendJson(res, 200, { ok: true, service: 'ti2026-viewing-guide', version: '1.4.1', dataDir: DATA_DIR, autoRefreshSeconds: SOURCE_ROTATION_SECONDS, fullReconcileSeconds: FULL_RECONCILE_SECONDS, liquipediaConfigured: Boolean(LIQUIPEDIA_API_KEY), openDotaLeagueId: OPENDOTA_TI_LEAGUE_ID, dataSources: memoryCache?.dataStatus?.sources || null, aiProvidersConfigured: aiService.configuredCount(), now: new Date().toISOString() });
     }
     if (u.pathname === '/api/ti2026') {
       const data = await refresh(false);
@@ -1500,7 +1500,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`TI2026 观赛指南 v1.4.0 已启动: http://127.0.0.1:${PORT}`);
+  console.log(`TI2026 观赛指南 v1.4.1 已启动: http://127.0.0.1:${PORT}`);
   console.log(`Liquipedia API Key: ${LIQUIPEDIA_API_KEY ? '已配置' : '未配置（当前使用降级模式）'}`);
   console.log(`多源轮询: 每 ${SOURCE_ROTATION_SECONDS} 秒刷新部分来源；每 ${FULL_RECONCILE_SECONDS} 秒错峰全源复核`);
   setTimeout(() => runRefresh('full', { forceNetwork:true, staggerMs:FULL_REFRESH_STAGGER_MS, trigger:'startup' }).then(d => console.log('[startup-full-refresh]', d.generatedAt, d.source)).catch(err => console.error('[startup-refresh]', err)), 1500).unref();
