@@ -638,10 +638,9 @@
       "source": "blast"
     },
     {
-      "id": "seed-d3-r5-2000-1",
-      "slotKey": "2026-08-15-2-2-1",
-      "startsAt": "2026-08-15T20:00:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 2-2",
+      "id": "seed-d3-r5-1715-1",
+      "startsAt": "2026-08-15T17:15:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
       "stream": null,
       "bestOf": 3,
       "teams": [
@@ -655,13 +654,12 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "published-schedule"
     },
     {
-      "id": "seed-d3-r5-2000-2",
-      "slotKey": "2026-08-15-2-2-2",
-      "startsAt": "2026-08-15T20:00:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 2-2",
+      "id": "seed-d3-r5-1715-2",
+      "startsAt": "2026-08-15T17:15:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
       "stream": null,
       "bestOf": 3,
       "teams": [
@@ -675,13 +673,12 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "published-schedule"
     },
     {
-      "id": "seed-d3-r5-2000-3",
-      "slotKey": "2026-08-15-2-2-3",
-      "startsAt": "2026-08-15T20:00:00+08:00",
-      "stage": "瑞士轮 · 第5轮 · 2-2",
+      "id": "seed-d3-r5-1715-4",
+      "startsAt": "2026-08-15T17:15:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
       "stream": null,
       "bestOf": 3,
       "teams": [
@@ -695,7 +692,83 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d3-r5-1730-5",
+      "startsAt": "2026-08-15T17:30:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d3-r5-1900-3",
+      "startsAt": "2026-08-15T19:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d3-r5-1900-6",
+      "startsAt": "2026-08-15T19:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
+    },
+    {
+      "id": "seed-d3-r5-1900-7",
+      "startsAt": "2026-08-15T19:00:00+08:00",
+      "stage": "瑞士轮 · 第5轮 · 对阵待官方发布",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "published-schedule"
     }
   ],
   "timeline": [
