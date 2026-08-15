@@ -1,0 +1,94 @@
+name: Apply v1.4.0 multi-source rotation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/apply_source_rotation_v140.py'
+      - '.github/workflows/apply-source-rotation-v140.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Apply v1.4.0 patch
+        run: python3 scripts/apply_source_rotation_v140.py
+
+      - name: Static validation
+        run: |
+          node --check server.js
+          node --check public/app.js
+          python3 -m json.tool package.json >/dev/null
+          python3 -m json.tool data/seed.json >/dev/null
+          npm test
+
+      - name: Real multi-source full refresh test
+        run: |
+          rm -rf /tmp/ti2026-v140
+          DATA_DIR=/tmp/ti2026-v140 \
+          PORT=17831 \
+          SOURCE_ROTATION_INTERVAL_SECONDS=60 \
+          FULL_RECONCILE_INTERVAL_SECONDS=600 \
+          FULL_REFRESH_STAGGER_MS=120 \
+          SCHEDULE_SOURCE_TTL_SECONDS=60 \
+          node server.js >/tmp/ti2026-v140.log 2>&1 &
+          echo $! >/tmp/ti2026-v140.pid
+          for i in $(seq 1 25); do
+            curl -fsS http://127.0.0.1:17831/api/health >/dev/null && break
+            sleep 1
+          done
+          curl -fsS --max-time 90 -X POST http://127.0.0.1:17831/api/refresh -o /tmp/ti2026-v140-payload.json
+          curl -fsS http://127.0.0.1:17831/api/source-health -o /tmp/ti2026-v140-health.json
+          python3 - <<'PY'
+          import json
+          p=json.load(open('/tmp/ti2026-v140-payload.json'))
+          h=json.load(open('/tmp/ti2026-v140-health.json'))
+          health=json.loads(__import__('urllib.request').request.urlopen('http://127.0.0.1:17831/api/health').read())
+          assert health['version']=='1.4.0', health
+          assert p['refreshMeta']['mode']=='full', p.get('refreshMeta')
+          refreshed=set(p['refreshMeta']['refreshedSources'])
+          expected={'liquipedia','blastSchedule','cybersportSchedule','publicUpcoming','openDotaLeague','openDotaProMatches','openDotaLive'}
+          assert refreshed==expected, (refreshed,expected)
+          policy=p['dataStatus']['refreshPolicy']
+          assert policy['automatic']=='partial-round-robin', policy
+          assert policy['manualRefresh']=='all-sources', policy
+          assert policy['partialEverySeconds']==60, policy
+          assert policy['periodicFullEverySeconds']==600, policy
+          assert policy['fullRefreshStaggerMs']==120, policy
+          src=p['dataStatus']['sources']
+          assert src['blastSchedule']['status'] in ('ok','empty'), src['blastSchedule']
+          assert src['cybersportSchedule']['status'] in ('ok','empty'), src['cybersportSchedule']
+          assert src['openDotaLeague']['status']=='ok', src['openDotaLeague']
+          assert src['openDotaProMatches']['status']=='ok', src['openDotaProMatches']
+          assert 'verificationSummary' in p['dataStatus']
+          assert h['refreshPolicy']['automatic']=='partial-round-robin', h
+          assert h['fullReconcileSeconds']==600, h
+          assert p['dataStatus']['lastFullRefreshAt'], p['dataStatus']
+          # Any current named website-sourced match must expose verification metadata.
+          named=[m for m in p['matches'] if all(t.get('name') and not t.get('name','').startswith('待定') for t in m.get('teams',[])) and m.get('verification')]
+          assert named, 'no verified schedule matches returned'
+          assert all(m['verification']['status'] in ('confirmed','provisional','conflict-latest','baseline') for m in named)
+          print('V140_INTEGRATION_OK')
+          print('SOURCE=',p['source'])
+          print('REFRESH=',p['refreshMeta'])
+          print('VERIFY=',p['dataStatus']['verificationSummary'])
+          print('BLAST=',src['blastSchedule'])
+          print('CYBERSPORT=',src['cybersportSchedule'])
+          print('OPENDOTA=',src['openDotaLeague'])
+          PY
+
+      - name: Commit verified v1.4.0
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/apply_source_rotation_v140.py .github/workflows/apply-source-rotation-v140.yml
+          git add server.js public/app.js public/v135.css package.json .env.example tests.js
+          git commit -m "Release v1.4.0 multi-source rotation and verification"
+          git push
