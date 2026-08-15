@@ -769,6 +769,101 @@
       ],
       "status": "upcoming",
       "source": "liquipedia-mediawiki-published"
+    },
+    {
+      "id": "seed-d4-elim-2000-1",
+      "startsAt": "2026-08-16T20:00:00+08:00",
+      "stage": "淘汰轮 · Match 1",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（3-2）",
+          "score": null
+        },
+        {
+          "name": "待定（2-3）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-d4-elim-2000-2",
+      "startsAt": "2026-08-16T20:00:00+08:00",
+      "stage": "淘汰轮 · Match 2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（3-2）",
+          "score": null
+        },
+        {
+          "name": "待定（2-3）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-d4-elim-2000-3",
+      "startsAt": "2026-08-16T20:00:00+08:00",
+      "stage": "淘汰轮 · Match 3",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（3-2）",
+          "score": null
+        },
+        {
+          "name": "待定（2-3）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-d4-elim-2000-4",
+      "startsAt": "2026-08-16T20:00:00+08:00",
+      "stage": "淘汰轮 · Match 4",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（3-2）",
+          "score": null
+        },
+        {
+          "name": "待定（2-3）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-d4-elim-2200-5",
+      "startsAt": "2026-08-16T22:00:00+08:00",
+      "stage": "淘汰轮 · Match 5",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定（3-2）",
+          "score": null
+        },
+        {
+          "name": "待定（2-3）",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
     }
   ],
   "timeline": [
@@ -790,7 +885,7 @@
     {
       "date": "2026-08-16",
       "title": "生死轮",
-      "detail": "5 场淘汰赛，决出最终 8 支主赛事队伍"
+      "detail": "淘汰轮共 5 场 BO3；BLAST 已发布北京时间 20:00 四场、22:00 一场的赛程位。具体对阵仍为 TBD，等待数据源正式发布后再同步，不根据瑞士轮战绩自行推算。"
     },
     {
       "date": "2026-08-17",
