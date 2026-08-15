@@ -1,0 +1,36 @@
+name: Verify TI2026 Round4 edge pairings
+on:
+  push:
+    paths:
+      - '.github/workflows/probe-ti-round4-edge.yml'
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check BLAST current HTML
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re,html
+          u='https://blast.tv/dota/tournaments/the-international-2026/series'
+          req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0 TI2026Guide/1.3','Accept-Language':'en-US,en;q=0.9'})
+          raw=urllib.request.urlopen(req,timeout=25).read().decode('utf-8','ignore')
+          text=html.unescape(re.sub(r'<[^>]+>',' ',raw)); text=re.sub(r'\s+',' ',text)
+          for needle in ['3-0 Match','0-3 Match','Team Spirit','PARIVISION','TEAM VISION','OG','HULIGANI','L1GA TEAM','2026-08-15T']:
+            print('\n###',needle)
+            hits=list(re.finditer(re.escape(needle),text,re.I))
+            print('COUNT',len(hits))
+            for m in hits[-12:]: print(text[max(0,m.start()-260):min(len(text),m.end()+420)])
+          print('\nRAW DATE OBJECTS')
+          for m in re.finditer(r'.{0,900}2026-08-15T(?:02|05|12):00:00\.000Z.{0,1200}',raw,re.I|re.S):
+            s=re.sub(r'\\u003[cCeE][^>]*|<[^>]+>',' ',m.group(0)); print(re.sub(r'\s+',' ',s)[:2300])
+          PY
+      - name: Cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/probe-ti-round4-edge.yml
+          git commit -m "Remove one-time Round4 edge probe"
+          git push
