@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Confirmed from BLAST results on 2026-08-16.
 import json
 from pathlib import Path
 p=Path('data/seed.json')
