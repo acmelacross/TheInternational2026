@@ -1,0 +1,16 @@
+name: Check latest TI2026 schedule
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/check_latest_schedule_auto.py'
+      - '.github/workflows/check-latest-schedule-auto.yml'
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check latest published schedule
+        run: python3 scripts/check_latest_schedule_auto.py
