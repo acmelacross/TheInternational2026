@@ -791,7 +791,7 @@
     },
     {
       "id": "seed-d4-elim-2000-2",
-      "startsAt": "2026-08-16T10:00:00+08:00",
+      "startsAt": "2026-08-16T11:00:00+08:00",
       "stage": "淘汰轮 · 3-2 对 2-3 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
@@ -806,7 +806,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "source": "blast-confirmed-time"
     },
     {
       "id": "seed-d4-elim-2000-3",
@@ -829,7 +829,7 @@
     },
     {
       "id": "seed-d4-elim-2000-4",
-      "startsAt": "2026-08-16T13:00:00+08:00",
+      "startsAt": "2026-08-16T14:00:00+08:00",
       "stage": "淘汰轮 · 3-2 对 2-3 · 已确认对阵",
       "stream": null,
       "bestOf": 3,
@@ -844,7 +844,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "source": "blast-confirmed-time"
     },
     {
       "id": "seed-d4-elim-2200-5",
@@ -999,7 +999,7 @@
     {
       "date": "2026-08-16",
       "title": "淘汰轮",
-      "detail": "淘汰轮 5 场 BO3 已由 Liquipedia MediaWiki 明确发布：10:00 Falcons vs Vici、Aurora vs BoomBoys；13:00 Spirit vs Resilience、Iron Wing vs GamerLegion；16:00 LGD vs Yandex。网站仅同步已发布对阵，不根据瑞士轮战绩自行推算。"
+      "detail": "淘汰轮 5 场 BO3 的对阵已确认；BLAST 最新赛程明确北京时间：10:00 Falcons vs Vici，11:00 Aurora vs BoomBoys，13:00 Spirit vs Resilience，14:00 Iron Wing vs GamerLegion，16:00 LGD vs Yandex。网站仅同步数据源明确发布的信息，不根据瑞士轮战绩自行推算。"
     },
     {
       "date": "2026-08-17",
