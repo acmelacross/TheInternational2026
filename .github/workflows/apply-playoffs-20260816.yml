@@ -1,0 +1,34 @@
+name: Apply TI2026 main-event schedule
+on:
+  push:
+    paths:
+      - 'scripts/apply_playoffs_20260816.py'
+      - '.github/workflows/apply-playoffs-20260816.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply confirmed schedule
+        run: python3 scripts/apply_playoffs_20260816.py
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          git diff --name-only | grep -v '^public/assets/teams-normal/' >/dev/null
+          test -z "$(git diff --name-only | grep '^public/assets/teams-normal/' || true)"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/inspect_playoff_seed.py .github/workflows/inspect-playoff-seed.yml scripts/apply_playoffs_20260816.py .github/workflows/apply-playoffs-20260816.yml
+          git add data/seed.json
+          git commit -m "Sync confirmed TI2026 main-event schedule"
+          git push
