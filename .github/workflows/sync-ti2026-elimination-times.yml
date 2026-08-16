@@ -1,0 +1,66 @@
+name: Sync TI2026 elimination time correction
+on:
+  push:
+    paths:
+      - '.github/workflows/sync-ti2026-elimination-times.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply BLAST confirmed time corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          d=json.loads(p.read_text())
+          updates={
+            'seed-d4-elim-2000-2':'2026-08-16T11:00:00+08:00',
+            'seed-d4-elim-2000-4':'2026-08-16T14:00:00+08:00',
+          }
+          seen=set()
+          for m in d.get('matches',[]):
+            mid=m.get('id')
+            if mid in updates:
+              m['startsAt']=updates[mid]
+              m['source']='blast-confirmed-time'
+              seen.add(mid)
+          missing=set(updates)-seen
+          if missing:
+            raise SystemExit(f'missing matches: {sorted(missing)}')
+          for x in d.get('timeline',[]):
+            if x.get('date')=='2026-08-16':
+              x['title']='淘汰轮'
+              x['detail']='淘汰轮 5 场 BO3 的对阵已确认；BLAST 最新赛程明确北京时间：10:00 Falcons vs Vici，11:00 Aurora vs BoomBoys，13:00 Spirit vs Resilience，14:00 Iron Wing vs GamerLegion，16:00 LGD vs Yandex。网站仅同步数据源明确发布的信息，不根据瑞士轮战绩自行推算。'
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Validate project
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if git diff --name-only | grep -q '^public/assets/teams-normal/'; then
+            echo 'ERROR: team logos were modified' >&2
+            exit 1
+          fi
+      - name: Commit synchronized schedule and clean workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/sync-ti2026-elimination-times.yml
+          git add data/seed.json
+          git commit -m 'Correct TI2026 elimination round times'
+          git push
