@@ -866,8 +866,84 @@
       "source": "liquipedia-mediawiki-published"
     },
     {
-      "id": "seed-main-d1-lbr1-1",
-      "startsAt": "2026-08-20T20:00:00+08:00",
+      "id": "seed-me-ubqf1",
+      "startsAt": "2026-08-20T10:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 1",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Iron Wing",
+          "score": null
+        },
+        {
+          "name": "Team Spirit",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-ubqf2",
+      "startsAt": "2026-08-20T13:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 2",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team VISION",
+          "score": null
+        },
+        {
+          "name": "BoomBoys",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-ubqf3",
+      "startsAt": "2026-08-20T16:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 3",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Team Liquid",
+          "score": null
+        },
+        {
+          "name": "Team Yandex",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-ubqf4",
+      "startsAt": "2026-08-20T19:00:00+08:00",
+      "stage": "主赛事 · 胜者组四分之一决赛 4",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "Nigma Galaxy",
+          "score": null
+        },
+        {
+          "name": "Team Falcons",
+          "score": null
+        }
+      ],
+      "status": "upcoming",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-lbr1-1",
+      "startsAt": "2026-08-21T10:00:00+08:00",
       "stage": "主赛事 · 败者组第1轮 1",
       "stream": null,
       "bestOf": 3,
@@ -885,8 +961,8 @@
       "source": "blast"
     },
     {
-      "id": "seed-main-d1-lbr1-2",
-      "startsAt": "2026-08-20T20:00:00+08:00",
+      "id": "seed-me-lbr1-2",
+      "startsAt": "2026-08-21T13:00:00+08:00",
       "stage": "主赛事 · 败者组第1轮 2",
       "stream": null,
       "bestOf": 3,
@@ -904,9 +980,9 @@
       "source": "blast"
     },
     {
-      "id": "seed-main-d1-ubqf-1",
-      "startsAt": "2026-08-20T20:00:00+08:00",
-      "stage": "主赛事 · 胜者组四分之一决赛 1",
+      "id": "seed-me-ubsf1",
+      "startsAt": "2026-08-21T16:00:00+08:00",
+      "stage": "主赛事 · 胜者组半决赛 1",
       "stream": null,
       "bestOf": 3,
       "teams": [
@@ -923,9 +999,9 @@
       "source": "blast"
     },
     {
-      "id": "seed-main-d1-ubqf-2",
-      "startsAt": "2026-08-20T20:00:00+08:00",
-      "stage": "主赛事 · 胜者组四分之一决赛 2",
+      "id": "seed-me-ubsf2",
+      "startsAt": "2026-08-21T19:00:00+08:00",
+      "stage": "主赛事 · 胜者组半决赛 2",
       "stream": null,
       "bestOf": 3,
       "teams": [
@@ -942,9 +1018,9 @@
       "source": "blast"
     },
     {
-      "id": "seed-main-d1-ubqf-3",
-      "startsAt": "2026-08-20T20:00:00+08:00",
-      "stage": "主赛事 · 胜者组四分之一决赛 3",
+      "id": "seed-me-lbr2-2",
+      "startsAt": "2026-08-22T10:00:00+08:00",
+      "stage": "主赛事 · 败者组第2轮 2",
       "stream": null,
       "bestOf": 3,
       "teams": [
@@ -961,11 +1037,87 @@
       "source": "blast"
     },
     {
-      "id": "seed-main-d1-ubqf-4",
-      "startsAt": "2026-08-20T20:00:00+08:00",
-      "stage": "主赛事 · 胜者组四分之一决赛 4",
+      "id": "seed-me-lbr2-1",
+      "startsAt": "2026-08-22T13:00:00+08:00",
+      "stage": "主赛事 · 败者组第2轮 1",
       "stream": null,
       "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-ubf",
+      "startsAt": "2026-08-22T16:00:00+08:00",
+      "stage": "主赛事 · 胜者组决赛",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-lbr3",
+      "startsAt": "2026-08-22T19:00:00+08:00",
+      "stage": "主赛事 · 败者组第3轮",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-lbf",
+      "startsAt": "2026-08-23T10:00:00+08:00",
+      "stage": "主赛事 · 败者组决赛",
+      "stream": null,
+      "bestOf": 3,
+      "teams": [
+        {
+          "name": "待定",
+          "score": null
+        },
+        {
+          "name": "待定",
+          "score": null
+        }
+      ],
+      "status": "tbd",
+      "source": "blast"
+    },
+    {
+      "id": "seed-me-gf",
+      "startsAt": "2026-08-23T13:00:00+08:00",
+      "stage": "主赛事 · 总决赛",
+      "stream": null,
+      "bestOf": 5,
       "teams": [
         {
           "name": "待定",
@@ -1019,22 +1171,26 @@
     {
       "date": "2026-08-20",
       "title": "主赛事 Day 1",
-      "detail": "BLAST 已发布主赛事首日 6 个 BO3 赛程位：北京时间 20:00 为 4 场胜者组四分之一决赛与 2 场败者组第1轮；具体对阵仍为 TBD，网站不根据淘汰轮结果自行推算。"
+      "detail": "BLAST 已发布主赛事首日 6 个 BO3 赛程位：北京时间 20:00 为 4 场胜者组四分之一决赛与 2 场败者组第1轮；具体对阵仍为 TBD，网站不根据淘汰轮结果自行推算。",
+      "note": "主赛事 Day 1：10:00 Iron Wing vs Team Spirit；13:00 TEAM VISION vs BoomBoys；16:00 Team Liquid vs Team Yandex；19:00 Nigma Galaxy vs Team Falcons（均 BO3）。"
     },
     {
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
-      "detail": "胜者组 / 败者组继续"
+      "detail": "胜者组 / 败者组继续",
+      "note": "主赛事 Day 2：10:00/13:00 败者组第1轮；16:00/19:00 胜者组半决赛。具体后续对阵等待数据源正式发布。"
     },
     {
       "date": "2026-08-22",
       "title": "主赛事 Day 3",
-      "detail": "淘汰赛后段"
+      "detail": "淘汰赛后段",
+      "note": "主赛事 Day 3：10:00/13:00 败者组第2轮；16:00 胜者组决赛；19:00 败者组第3轮。"
     },
     {
       "date": "2026-08-23",
       "title": "决赛日",
-      "detail": "败者组决赛 + 总决赛 BO5"
+      "detail": "败者组决赛 + 总决赛 BO5",
+      "note": "主赛事最终日：10:00 败者组决赛（BO3）；13:00 总决赛（BO5）。"
     }
   ],
   "chinaTeams": [
