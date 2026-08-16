@@ -779,15 +779,15 @@
       "teams": [
         {
           "name": "Team Falcons",
-          "score": null
+          "score": 2
         },
         {
           "name": "Vici Gaming",
-          "score": null
+          "score": 0
         }
       ],
-      "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-d4-elim-2000-2",
@@ -798,15 +798,15 @@
       "teams": [
         {
           "name": "Aurora Gaming",
-          "score": null
+          "score": 0
         },
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-time"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-d4-elim-2000-3",
@@ -817,15 +817,15 @@
       "teams": [
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Resilience",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-d4-elim-2000-4",
@@ -836,15 +836,15 @@
       "teams": [
         {
           "name": "Iron Wing",
-          "score": null
+          "score": 2
         },
         {
           "name": "GamerLegion",
-          "score": null
+          "score": 0
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-time"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-d4-elim-2200-5",
