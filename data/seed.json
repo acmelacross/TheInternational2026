@@ -855,15 +855,15 @@
       "teams": [
         {
           "name": "LGD Gaming",
-          "score": null
+          "score": 1
         },
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "liquipedia-mediawiki-confirmed-result"
     },
     {
       "id": "seed-me-ubqf1",
