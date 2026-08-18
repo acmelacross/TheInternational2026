@@ -1,0 +1,32 @@
+name: Sync TI2026 Aug 15 confirmed results
+on:
+  push:
+    paths:
+      - 'scripts/sync_aug15_results.py'
+      - '.github/workflows/sync-aug15-results.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply confirmed BLAST results
+        run: python3 scripts/sync_aug15_results.py
+      - name: Validate project
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+      - name: Commit verified sync
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/sync_aug15_results.py .github/workflows/sync-aug15-results.yml
+          git add data/seed.json
+          git commit -m "Sync confirmed TI2026 Aug 15 results"
+          git push
