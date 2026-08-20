@@ -972,12 +972,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Falcons",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "published-schedule"
     },
     {
       "id": "seed-me-ubsf1",
@@ -1010,12 +1010,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Nigma Galaxy",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "published-schedule"
     },
     {
       "id": "seed-me-lbr2-2",
@@ -1444,7 +1444,7 @@
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
       "detail": "主赛事 Day 2 已明确四场对阵：10:00 Iron Wing vs BoomBoys、13:00 Team Liquid vs Team Falcons、16:00 Team Spirit vs TEAM VISION、19:00 Team Yandex vs Nigma Galaxy。",
-      "note": "仅同步可靠公开数据源已经明确发布的对阵与时间；不根据胜负关系自行推算后续轮次。"
+      "note": "10:00 Iron Wing vs BoomBoys；13:00 Team Liquid vs Team Falcons；16:00 Team Spirit vs TEAM VISION；19:00 Team Yandex vs Nigma Galaxy。其余后续对阵等待可靠数据源正式发布。"
     },
     {
       "date": "2026-08-22",
