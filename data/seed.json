@@ -924,7 +924,7 @@
     },
     {
       "id": "seed-me-ubqf4",
-      "startsAt": "2026-08-20T21:15:00+08:00",
+      "startsAt": "2026-08-20T21:20:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 4",
       "stream": null,
       "bestOf": 3,
@@ -939,7 +939,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-lbr1-1",
@@ -1190,7 +1190,7 @@
     },
     {
       "id": "seed-main-0820-ubqf4",
-      "startsAt": "2026-08-20T21:15:00+08:00",
+      "startsAt": "2026-08-20T21:20:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 4",
       "stream": null,
       "bestOf": 3,
@@ -1205,7 +1205,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0821-lbr1-1",
@@ -1437,7 +1437,7 @@
     {
       "date": "2026-08-20",
       "title": "主赛事 Day 1",
-      "detail": "主赛事 Day 1：10:30 Iron Wing 0:2 Team Spirit、13:45 TEAM VISION 2:1 BoomBoys 均已结束；18:30 Team Liquid vs Team Yandex；21:15 Nigma Galaxy vs Team Falcons。进行中比分不写死，继续由实时数据源更新。",
+      "detail": "主赛事 Day 1：10:30 Iron Wing 0:2 Team Spirit、13:45 TEAM VISION 2:1 BoomBoys 均已结束；18:30 Team Liquid vs Team Yandex；21:20 Nigma Galaxy vs Team Falcons。进行中比分不写死，继续由实时数据源更新。",
       "note": "BLAST 已确认前两场最终比分；8 月 21 日 10:00 败者组第1轮 Match 1 已明确为 Iron Wing vs BoomBoys，16:00 胜者组半决赛 1 已明确为 Team Spirit vs TEAM VISION。"
     },
     {
