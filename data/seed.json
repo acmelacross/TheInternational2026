@@ -1133,7 +1133,7 @@
     },
     {
       "id": "seed-main-0820-ubqf1",
-      "startsAt": "2026-08-20T10:00:00+08:00",
+      "startsAt": "2026-08-20T10:30:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 1",
       "stream": null,
       "bestOf": 3,
@@ -1437,8 +1437,8 @@
     {
       "date": "2026-08-20",
       "title": "主赛事 Day 1",
-      "detail": "BLAST 已明确发布主赛事首日 4 场胜者组四分之一决赛：北京时间 10:00 Iron Wing vs Team Spirit，13:00 TEAM VISION vs BoomBoys，16:00 Team Liquid vs Team Yandex，19:00 Nigma Galaxy vs Team Falcons；均为 BO3。败者组第1轮安排在 8 月 21 日，后续对阵继续等待数据源正式发布。",
-      "note": "主赛事 Day 1：10:00 Iron Wing vs Team Spirit；13:00 TEAM VISION vs BoomBoys；16:00 Team Liquid vs Team Yandex；19:00 Nigma Galaxy vs Team Falcons。对阵与时间均按 BLAST 已发布赛程。"
+      "detail": "BLAST 已明确发布主赛事首日 4 场胜者组四分之一决赛：北京时间 10:30 Iron Wing vs Team Spirit，13:00 TEAM VISION vs BoomBoys，16:00 Team Liquid vs Team Yandex，19:00 Nigma Galaxy vs Team Falcons；均为 BO3。败者组第1轮安排在 8 月 21 日，后续对阵继续等待数据源正式发布。",
+      "note": "主赛事 Day 1：10:30 Iron Wing vs Team Spirit；13:00 TEAM VISION vs BoomBoys；16:00 Team Liquid vs Team Yandex；19:00 Nigma Galaxy vs Team Falcons。对阵与时间均按 BLAST 已发布赛程。"
     },
     {
       "date": "2026-08-21",
