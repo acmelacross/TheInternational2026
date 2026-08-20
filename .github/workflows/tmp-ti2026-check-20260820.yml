@@ -1,0 +1,16 @@
+name: Temporary TI2026 live checker
+on:
+  push:
+    branches: [tmp-ti2026-check-20260820-2051]
+    paths:
+      - 'scripts/tmp_check_live_20260820.py'
+      - '.github/workflows/tmp-ti2026-check-20260820.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check current TI2026 sources
+        run: python3 scripts/tmp_check_live_20260820.py
