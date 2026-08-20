@@ -1140,15 +1140,15 @@
       "teams": [
         {
           "name": "Iron Wing",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0820-ubqf2",
@@ -1215,7 +1215,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Iron Wing",
           "score": null
         },
         {
@@ -1253,7 +1253,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         },
         {
@@ -1437,14 +1437,14 @@
     {
       "date": "2026-08-20",
       "title": "主赛事 Day 1",
-      "detail": "BLAST 已明确发布主赛事首日 4 场胜者组四分之一决赛：北京时间 10:30 Iron Wing vs Team Spirit，13:00 TEAM VISION vs BoomBoys，16:00 Team Liquid vs Team Yandex，19:00 Nigma Galaxy vs Team Falcons；均为 BO3。败者组第1轮安排在 8 月 21 日，后续对阵继续等待数据源正式发布。",
-      "note": "主赛事 Day 1：10:30 Iron Wing vs Team Spirit；13:00 TEAM VISION vs BoomBoys；16:00 Team Liquid vs Team Yandex；19:00 Nigma Galaxy vs Team Falcons。对阵与时间均按 BLAST 已发布赛程。"
+      "detail": "主赛事 Day 1：10:30 Iron Wing 0:2 Team Spirit 已结束；13:00 TEAM VISION vs BoomBoys、16:00 Team Liquid vs Team Yandex、19:00 Nigma Galaxy vs Team Falcons。比分与后续对阵仅按可靠数据源明确发布的信息更新。",
+      "note": "BLAST 已确认 Iron Wing 0:2 Team Spirit；Team Spirit 进入 8 月 21 日胜者组半决赛 1，Iron Wing 进入败者组第1轮 Match 1；其余尚未明确的对手保持 TBD。"
     },
     {
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
       "detail": "胜者组 / 败者组继续",
-      "note": "主赛事 Day 2：10:00、13:00 两场败者组第1轮；16:00、19:00 两场胜者组半决赛。具体 TBD 对阵等待可靠数据源发布，不自行推算。"
+      "note": "主赛事 Day 2：10:00 败者组第1轮 Match 1 已明确包含 Iron Wing（对手 TBD）；13:00 败者组第1轮 Match 2 仍为 TBD；16:00 胜者组半决赛 1 已明确包含 Team Spirit（对手 TBD）；19:00 胜者组半决赛 2 仍为 TBD。"
     },
     {
       "date": "2026-08-22",
