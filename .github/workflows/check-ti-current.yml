@@ -1,0 +1,24 @@
+name: Check TI current
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/check-ti-current.yml']
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch XGoat current schedule
+        run: |
+          set -e
+          curl -fsSL --max-time 30 -A 'Mozilla/5.0 TI2026-check' 'https://ti.xgoat.top/api/schedule/wiki?year=2026' -o /tmp/x.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/x.json'))
+          print('META', {k:d.get(k) for k in ['source','fetchedAt','revisionAt','revisionId','stale']})
+          for st in d.get('stages',[]):
+            for rd in st.get('rounds',[]):
+              for m in rd.get('matches',[]):
+                t=m.get('scheduledAt','')
+                if t.startswith('2026-08-20') or t.startswith('2026-08-21'):
+                  print('MATCH', st.get('label'), rd.get('title'), json.dumps(m, ensure_ascii=False))
+          PY
