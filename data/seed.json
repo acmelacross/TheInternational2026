@@ -912,15 +912,15 @@
       "teams": [
         {
           "name": "Team Liquid",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-ubqf4",
@@ -1178,15 +1178,15 @@
       "teams": [
         {
           "name": "Team Liquid",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0820-ubqf4",
