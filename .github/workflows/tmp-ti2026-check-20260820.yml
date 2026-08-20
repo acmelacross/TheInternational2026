@@ -6,11 +6,18 @@ on:
       - 'scripts/tmp_check_live_20260820.py'
       - '.github/workflows/tmp-ti2026-check-20260820.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Check current TI2026 sources
-        run: python3 scripts/tmp_check_live_20260820.py
+        run: python3 scripts/tmp_check_live_20260820.py | tee tmp-live-output.txt
+      - name: Persist result on temporary branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- tmp-live-output.txt
+          git commit -m "Record temporary TI2026 live check" || exit 0
+          git push
