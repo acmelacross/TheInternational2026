@@ -1,0 +1,50 @@
+name: Sync TI2026 Aug 20 time
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/sync-ti2026-0820-time.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch confirmed BLAST time
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('data/seed.json')
+          s=p.read_text()
+          old='''"id": "seed-main-0820-ubqf1",\n      "startsAt": "2026-08-20T10:00:00+08:00"'''
+          new='''"id": "seed-main-0820-ubqf1",\n      "startsAt": "2026-08-20T10:30:00+08:00"'''
+          if old not in s:
+              raise SystemExit('target match/time anchor not found')
+          s=s.replace(old,new,1)
+          s=s.replace('10:00 Iron Wing vs Team Spirit', '10:30 Iron Wing vs Team Spirit')
+          p.write_text(s)
+          PY
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if git diff -- public/assets/teams-normal | grep -q .; then
+            echo 'teams-normal logo directory changed unexpectedly' >&2
+            exit 1
+          fi
+      - name: Commit verified change and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/sync-ti2026-0820-time.yml
+          git add data/seed.json
+          git commit -m "Correct TI2026 Aug 20 opening match time"
+          git push
