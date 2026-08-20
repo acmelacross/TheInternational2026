@@ -1,0 +1,73 @@
+name: Sync TI2026 Aug20 live confirmed data
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Patch confirmed bracket data
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          d=json.loads(p.read_text())
+          byid={m.get('id'):m for m in d.get('matches',[])}
+
+          m=byid['seed-main-0820-ubqf1']
+          m['teams'][0]['score']=0
+          m['teams'][1]['score']=2
+          m['status']='finished'
+          m['source']='blast-confirmed-result'
+
+          m=byid['seed-main-0821-lbr1-1']
+          m['teams'][0]['name']='Iron Wing'
+          m['teams'][0]['score']=None
+          m['teams'][1]['name']='待定'
+          m['teams'][1]['score']=None
+          m['status']='tbd'
+          m['source']='blast'
+
+          m=byid['seed-main-0821-ubsf1']
+          m['teams'][0]['name']='Team Spirit'
+          m['teams'][0]['score']=None
+          m['teams'][1]['name']='待定'
+          m['teams'][1]['score']=None
+          m['status']='tbd'
+          m['source']='blast'
+
+          for item in d.get('timeline',[]):
+              if item.get('date')=='2026-08-20':
+                  item['detail']='主赛事 Day 1：10:30 Iron Wing 0:2 Team Spirit 已结束；13:00 TEAM VISION vs BoomBoys、16:00 Team Liquid vs Team Yandex、19:00 Nigma Galaxy vs Team Falcons。比分与后续对阵仅按可靠数据源明确发布的信息更新。'
+                  item['note']='BLAST 已确认 Iron Wing 0:2 Team Spirit；Team Spirit 进入 8 月 21 日胜者组半决赛 1，Iron Wing 进入败者组第1轮 Match 1；其余尚未明确的对手保持 TBD。'
+              if item.get('date')=='2026-08-21':
+                  item['note']='主赛事 Day 2：10:00 败者组第1轮 Match 1 已明确包含 Iron Wing（对手 TBD）；13:00 败者组第1轮 Match 2 仍为 TBD；16:00 胜者组半决赛 1 已明确包含 Team Spirit（对手 TBD）；19:00 胜者组半决赛 2 仍为 TBD。'
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if git diff --name-only | grep -q '^public/assets/teams-normal/'; then
+            echo 'Refusing to modify manually maintained team logos' >&2
+            exit 1
+          fi
+      - name: Commit verified update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/sync-ti-aug20-live.yml
+          git add data/seed.json
+          git commit -m "Sync confirmed TI2026 Aug 20 result and bracket slots"
+          git push
