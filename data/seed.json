@@ -867,22 +867,22 @@
     },
     {
       "id": "seed-me-ubqf1",
-      "startsAt": "2026-08-20T10:00:00+08:00",
+      "startsAt": "2026-08-20T10:30:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 1",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
           "name": "Iron Wing",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-ubqf2",
@@ -893,19 +893,19 @@
       "teams": [
         {
           "name": "Team VISION",
-          "score": null
+          "score": 2
         },
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-ubqf3",
-      "startsAt": "2026-08-20T18:00:00+08:00",
+      "startsAt": "2026-08-20T18:30:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 3",
       "stream": null,
       "bestOf": 3,
@@ -924,7 +924,7 @@
     },
     {
       "id": "seed-me-ubqf4",
-      "startsAt": "2026-08-20T20:30:00+08:00",
+      "startsAt": "2026-08-20T21:15:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 4",
       "stream": null,
       "bestOf": 3,
@@ -949,16 +949,16 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Iron Wing",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "BoomBoys",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "blast+liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-lbr1-2",
@@ -987,16 +987,16 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team VISION",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "blast+liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-ubsf2",
@@ -1159,19 +1159,19 @@
       "teams": [
         {
           "name": "Team VISION",
-          "score": null
+          "score": 2
         },
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0820-ubqf3",
-      "startsAt": "2026-08-20T18:00:00+08:00",
+      "startsAt": "2026-08-20T18:30:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 3",
       "stream": null,
       "bestOf": 3,
@@ -1190,7 +1190,7 @@
     },
     {
       "id": "seed-main-0820-ubqf4",
-      "startsAt": "2026-08-20T20:30:00+08:00",
+      "startsAt": "2026-08-20T21:15:00+08:00",
       "stage": "主赛事 · 胜者组四分之一决赛 4",
       "stream": null,
       "bestOf": 3,
@@ -1219,12 +1219,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "BoomBoys",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "blast+liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0821-lbr1-2",
@@ -1257,12 +1257,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team VISION",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "blast+liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0821-ubsf2",
@@ -1437,14 +1437,14 @@
     {
       "date": "2026-08-20",
       "title": "主赛事 Day 1",
-      "detail": "主赛事 Day 1：10:30 Iron Wing 0:2 Team Spirit 已结束；13:45 TEAM VISION vs BoomBoys 正在进行；18:00 Team Liquid vs Team Yandex；20:30 Nigma Galaxy vs Team Falcons。进行中比分不写死，比分与后续对阵仅按可靠数据源明确发布的信息更新。",
-      "note": "BLAST 已确认 Iron Wing 0:2 Team Spirit；Team Spirit 进入 8 月 21 日胜者组半决赛 1，Iron Wing 进入败者组第1轮 Match 1；其余尚未明确的对手保持 TBD。"
+      "detail": "主赛事 Day 1：10:30 Iron Wing 0:2 Team Spirit、13:45 TEAM VISION 2:1 BoomBoys 均已结束；18:30 Team Liquid vs Team Yandex；21:15 Nigma Galaxy vs Team Falcons。进行中比分不写死，继续由实时数据源更新。",
+      "note": "BLAST 已确认前两场最终比分；8 月 21 日 10:00 败者组第1轮 Match 1 已明确为 Iron Wing vs BoomBoys，16:00 胜者组半决赛 1 已明确为 Team Spirit vs TEAM VISION。"
     },
     {
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
       "detail": "胜者组 / 败者组继续",
-      "note": "主赛事 Day 2：10:00 败者组第1轮 Match 1 已明确包含 Iron Wing（对手 TBD）；13:00 败者组第1轮 Match 2 仍为 TBD；16:00 胜者组半决赛 1 已明确包含 Team Spirit（对手 TBD）；19:00 胜者组半决赛 2 仍为 TBD。"
+      "note": "主赛事 Day 2：10:00 败者组第1轮 Match 1 为 Iron Wing vs BoomBoys；16:00 胜者组半决赛 1 为 Team Spirit vs TEAM VISION。13:00 败者组第1轮 Match 2 与 19:00 胜者组半决赛 2 继续等待当前四分之一决赛结束后由可靠数据源明确发布。"
     },
     {
       "date": "2026-08-22",
