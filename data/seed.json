@@ -912,15 +912,15 @@
       "teams": [
         {
           "name": "Team Liquid",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-ubqf4",
@@ -931,15 +931,15 @@
       "teams": [
         {
           "name": "Nigma Galaxy",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Falcons",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-lbr1-1",
@@ -1178,15 +1178,15 @@
       "teams": [
         {
           "name": "Team Liquid",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0820-ubqf4",
@@ -1197,15 +1197,15 @@
       "teams": [
         {
           "name": "Nigma Galaxy",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Falcons",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0821-lbr1-1",
@@ -1437,8 +1437,8 @@
     {
       "date": "2026-08-20",
       "title": "主赛事 Day 1",
-      "detail": "主赛事 Day 1：10:30 Iron Wing 0:2 Team Spirit、13:45 TEAM VISION 2:1 BoomBoys 均已结束；18:30 Team Liquid vs Team Yandex；21:20 Nigma Galaxy vs Team Falcons。进行中比分不写死，继续由实时数据源更新。",
-      "note": "BLAST 已确认前两场最终比分；8 月 21 日 10:00 败者组第1轮 Match 1 已明确为 Iron Wing vs BoomBoys，16:00 胜者组半决赛 1 已明确为 Team Spirit vs TEAM VISION。"
+      "detail": "主赛事 Day 1 已全部结束：10:30 Iron Wing 0:2 Team Spirit、13:45 TEAM VISION 2:1 BoomBoys、18:30 Team Liquid 0:2 Team Yandex、21:20 Nigma Galaxy 2:1 Team Falcons。赛果均以可靠公开数据源明确发布为准。",
+      "note": "8 月 21 日已明确的对阵继续按数据源发布同步：10:00 Iron Wing vs BoomBoys、16:00 Team Spirit vs TEAM VISION；其余仍为 TBD 的位置不根据晋级关系自行推算。"
     },
     {
       "date": "2026-08-21",
