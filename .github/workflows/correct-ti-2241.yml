@@ -1,0 +1,70 @@
+name: Correct TI 2241
+on:
+  push:
+    paths: ['.github/workflows/correct-ti-2241.yml']
+permissions:
+  contents: write
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Correct from current Liquipedia MediaWiki revision
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          d=json.loads(p.read_text())
+          byid={m.get('id'):m for m in d.get('matches',[])}
+          # The direct current source has not published the UBQF3 score in the snapshot.
+          # Remove the mistakenly imported stale H2H score from both duplicate seed records.
+          for mid in ('seed-me-ubqf3','seed-main-0820-ubqf3'):
+              m=byid[mid]
+              assert [t.get('name') for t in m['teams'][:2]]==['Team Liquid','Team Yandex']
+              m['teams'][0]['score']=None
+              m['teams'][1]['score']=None
+              m['status']='upcoming'
+              m['source']='blast'
+          # Current Liquipedia MediaWiki revision 2417861 explicitly publishes these slots.
+          for mid in ('seed-me-lbr1-2','seed-main-0821-lbr1-2'):
+              m=byid[mid]
+              m['teams'][0]['name']='Team Liquid'; m['teams'][0]['score']=None
+              m['teams'][1]['name']='待定'; m['teams'][1]['score']=None
+              m['status']='tbd'; m['source']='liquipedia-mediawiki-published'
+          for mid in ('seed-me-ubsf2','seed-main-0821-ubsf2'):
+              m=byid[mid]
+              m['teams'][0]['name']='Team Yandex'; m['teams'][0]['score']=None
+              m['teams'][1]['name']='待定'; m['teams'][1]['score']=None
+              m['status']='tbd'; m['source']='liquipedia-mediawiki-published'
+          for item in d.get('timeline',[]):
+              for key in ('note','summary','description'):
+                  v=item.get(key)
+                  if isinstance(v,str):
+                      v=v.replace('18:30 Team Liquid 2:1 Team Yandex','18:30 Team Liquid vs Team Yandex')
+                      item[key]=v
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if ! git diff --quiet -- public/assets/teams-normal; then
+            echo 'teams-normal was modified unexpectedly' >&2
+            exit 1
+          fi
+      - name: Commit correction and cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/workflows/correct-ti-2241.yml .github/workflows/check-ti-2241.yml .github/workflows/sync-ti-liquid-yandex-result.yml tmp/ti-current-output.json
+          git add -A
+          git commit -m 'Sync published TI2026 Aug 21 bracket slots'
+          git push
