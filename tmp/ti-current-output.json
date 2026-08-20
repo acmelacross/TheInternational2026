@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "source": "Liquipedia MediaWiki API",
+    "fetchedAt": "2026-08-20T14:43:39.852Z",
+    "revisionAt": "2026-08-20T14:41:58Z",
+    "revisionId": 2417861,
+    "stale": false
+  },
+  "matches": [
+    {
+      "stage": "主赛事",
+      "round": "Upper Bracket Quarterfinals",
+      "match": {
+        "id": "163-R1M4",
+        "group": "Upper Bracket Quarterfinals",
+        "scheduledAt": "2026-08-20T13:20:00.000Z",
+        "estimatedDate": "",
+        "bestOf": 3,
+        "status": "scheduled",
+        "opponents": [
+          {
+            "name": "Nigma Galaxy",
+            "shortName": "Nigma Galaxy",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/5/56/Nigma_Galaxy_darkmode.png/96px-Nigma_Galaxy_darkmode.png",
+            "canonicalKey": "nigmagalaxy"
+          },
+          {
+            "name": "Team Falcons",
+            "shortName": "Team Falcons",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/8/83/Team_Falcons_2022_allmode.png/96px-Team_Falcons_2022_allmode.png",
+            "canonicalKey": "teamfalcons"
+          }
+        ]
+      }
+    },
+    {
+      "stage": "主赛事",
+      "round": "Lower Bracket Round 1",
+      "match": {
+        "id": "163-R1M5",
+        "group": "Lower Bracket Round 1",
+        "scheduledAt": "2026-08-21T02:00:00.000Z",
+        "estimatedDate": "",
+        "bestOf": 3,
+        "status": "scheduled",
+        "opponents": [
+          {
+            "name": "Iron Wing TI 2026",
+            "shortName": "Iron Wing TI 2026",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/3/3c/Iron_Wing_allmode.png/96px-Iron_Wing_allmode.png",
+            "canonicalKey": "ironwing"
+          },
+          {
+            "name": "BoomBoys",
+            "shortName": "BoomBoys",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/0/05/BoomBoys_allmode.png/96px-BoomBoys_allmode.png",
+            "canonicalKey": "boomboys"
+          }
+        ]
+      }
+    },
+    {
+      "stage": "主赛事",
+      "round": "Lower Bracket Round 1",
+      "match": {
+        "id": "163-R1M6",
+        "group": "Lower Bracket Round 1",
+        "scheduledAt": "2026-08-21T05:00:00.000Z",
+        "estimatedDate": "",
+        "bestOf": 3,
+        "status": "pending",
+        "opponents": [
+          {
+            "name": "Team Liquid",
+            "shortName": "Team Liquid",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/5/59/Team_Liquid_2024_darkmode.png/96px-Team_Liquid_2024_darkmode.png",
+            "canonicalKey": "teamliquid"
+          },
+          {
+            "name": "TBD",
+            "shortName": "TBD",
+            "score": null,
+            "logoUrl": "",
+            "canonicalKey": "tbd"
+          }
+        ]
+      }
+    },
+    {
+      "stage": "主赛事",
+      "round": "Upper Bracket Semifinals",
+      "match": {
+        "id": "163-R2M1",
+        "group": "Upper Bracket Semifinals",
+        "scheduledAt": "2026-08-21T08:00:00.000Z",
+        "estimatedDate": "",
+        "bestOf": 3,
+        "status": "scheduled",
+        "opponents": [
+          {
+            "name": "Team Spirit",
+            "shortName": "Team Spirit",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/8/80/Team_Spirit_2022_darkmode.png/96px-Team_Spirit_2022_darkmode.png",
+            "canonicalKey": "teamspirit"
+          },
+          {
+            "name": "TEAM VISION",
+            "shortName": "TEAM VISION",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/5/55/TEAM_VISION_allmode.png/96px-TEAM_VISION_allmode.png",
+            "canonicalKey": "teamvision"
+          }
+        ]
+      }
+    },
+    {
+      "stage": "主赛事",
+      "round": "Upper Bracket Semifinals",
+      "match": {
+        "id": "163-R2M2",
+        "group": "Upper Bracket Semifinals",
+        "scheduledAt": "2026-08-21T11:00:00.000Z",
+        "estimatedDate": "",
+        "bestOf": 3,
+        "status": "pending",
+        "opponents": [
+          {
+            "name": "Team Yandex",
+            "shortName": "Team Yandex",
+            "score": null,
+            "logoUrl": "https://liquipedia.net/commons/images/thumb/3/3b/Team_Yandex_2026_darkmode.png/96px-Team_Yandex_2026_darkmode.png",
+            "canonicalKey": "teamyandex"
+          },
+          {
+            "name": "TBD",
+            "shortName": "TBD",
+            "score": null,
+            "logoUrl": "",
+            "canonicalKey": "tbd"
+          }
+        ]
+      }
+    }
+  ]
+}
