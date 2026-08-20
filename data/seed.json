@@ -912,15 +912,15 @@
       "teams": [
         {
           "name": "Team Liquid",
-          "score": 2
+          "score": null
         },
         {
           "name": "Team Yandex",
-          "score": 1
+          "score": null
         }
       ],
-      "status": "finished",
-      "source": "blast-confirmed-result"
+      "status": "upcoming",
+      "source": "blast"
     },
     {
       "id": "seed-me-ubqf4",
@@ -968,7 +968,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Liquid",
           "score": null
         },
         {
@@ -977,7 +977,7 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-ubsf1",
@@ -1006,7 +1006,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Yandex",
           "score": null
         },
         {
@@ -1015,7 +1015,7 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-lbr2-2",
@@ -1178,15 +1178,15 @@
       "teams": [
         {
           "name": "Team Liquid",
-          "score": 2
+          "score": null
         },
         {
           "name": "Team Yandex",
-          "score": 1
+          "score": null
         }
       ],
-      "status": "finished",
-      "source": "blast-confirmed-result"
+      "status": "upcoming",
+      "source": "blast"
     },
     {
       "id": "seed-main-0820-ubqf4",
@@ -1234,7 +1234,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Liquid",
           "score": null
         },
         {
@@ -1243,7 +1243,7 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0821-ubsf1",
@@ -1272,7 +1272,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Yandex",
           "score": null
         },
         {
@@ -1281,7 +1281,7 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0822-lbr2-2",
