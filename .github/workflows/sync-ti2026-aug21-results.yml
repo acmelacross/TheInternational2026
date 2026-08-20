@@ -1,0 +1,78 @@
+name: Sync TI2026 Aug 21 confirmed results
+
+on:
+  push:
+    paths:
+      - '.github/workflows/sync-ti2026-aug21-results.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update confirmed results only
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('data/seed.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          by_id = {m.get('id'): m for m in data.get('matches', [])}
+
+          updates = {
+              'seed-me-ubqf3': [('Team Liquid', 0), ('Team Yandex', 2)],
+              'seed-main-0820-ubqf3': [('Team Liquid', 0), ('Team Yandex', 2)],
+              'seed-me-ubqf4': [('Nigma Galaxy', 2), ('Team Falcons', 1)],
+              'seed-main-0820-ubqf4': [('Nigma Galaxy', 2), ('Team Falcons', 1)],
+          }
+
+          for mid, teams in updates.items():
+              m = by_id.get(mid)
+              if not m:
+                  raise SystemExit(f'missing expected match id: {mid}')
+              actual = [t.get('name') for t in m.get('teams', [])]
+              expected = [name for name, _ in teams]
+              if actual != expected:
+                  raise SystemExit(f'{mid} team mismatch: {actual} != {expected}')
+              for t, (_, score) in zip(m['teams'], teams):
+                  t['score'] = score
+              m['status'] = 'finished'
+              m['source'] = 'blast-confirmed-result'
+
+          for item in data.get('timeline', []):
+              if item.get('date') == '2026-08-20':
+                  item['detail'] = '主赛事 Day 1 已全部结束：10:30 Iron Wing 0:2 Team Spirit、13:45 TEAM VISION 2:1 BoomBoys、18:30 Team Liquid 0:2 Team Yandex、21:20 Nigma Galaxy 2:1 Team Falcons。赛果均以可靠公开数据源明确发布为准。'
+                  item['note'] = '8 月 21 日已明确的对阵继续按数据源发布同步：10:00 Iron Wing vs BoomBoys、16:00 Team Spirit vs TEAM VISION；其余仍为 TBD 的位置不根据晋级关系自行推算。'
+
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+      - name: Validate project data and JavaScript
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if ! git diff --quiet -- public/assets/teams-normal; then
+            echo 'ERROR: public/assets/teams-normal changed unexpectedly' >&2
+            exit 1
+          fi
+
+      - name: Commit verified sync and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/sync-ti2026-aug21-results.yml
+          git add -- data/seed.json
+          git commit -m "Sync confirmed TI2026 Aug 20 playoff results"
+          git push origin main
