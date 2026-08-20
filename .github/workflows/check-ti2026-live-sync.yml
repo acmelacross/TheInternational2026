@@ -1,0 +1,16 @@
+name: Check TI2026 live sync
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/check_ti2026_live_sync.py'
+      - '.github/workflows/check-ti2026-live-sync.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch current structured schedule
+        run: python3 scripts/check_ti2026_live_sync.py
