@@ -1,0 +1,66 @@
+name: Sync TI2026 current confirmed updates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-ti-20260821-current.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply confirmed BLAST updates
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          d=json.loads(p.read_text())
+          ids={m['id']:m for m in d['matches']}
+          for mid in ['seed-me-lbr1-2','seed-main-0821-lbr1-2']:
+              m=ids[mid]
+              assert [t['name'] for t in m['teams']] == ['Team Liquid','Team Falcons']
+              m['teams'][0]['score']=2
+              m['teams'][1]['score']=1
+              m['status']='finished'
+              m['source']='blast-confirmed-result'
+          for mid in ['seed-me-ubsf2','seed-main-0821-ubsf2']:
+              m=ids[mid]
+              assert [t['name'] for t in m['teams']] == ['Team Yandex','Nigma Galaxy']
+              m['startsAt']='2026-08-21T21:30:00+08:00'
+              m['source']='blast-published'
+          for x in d['timeline']:
+              if x.get('date')=='2026-08-21':
+                  x['detail']='主赛事 Day 2：10:00 Iron Wing 1:2 BoomBoys 已结束；14:15 Team Liquid 2:1 Team Falcons 已结束；18:20 Team Spirit vs TEAM VISION；21:30 Team Yandex vs Nigma Galaxy。'
+                  x['note']='Iron Wing 1:2 BoomBoys、Team Liquid 2:1 Team Falcons 均为 BLAST 已确认最终赛果；21:30 为 BLAST 最新发布时间。Team Spirit vs TEAM VISION 当前临时比分不写死，继续由实时数据源更新。'
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if ! git diff --quiet -- public/assets/teams-normal; then
+            echo 'ERROR: team logos changed' >&2
+            exit 1
+          fi
+      - name: Commit to main and clean temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/sync-ti-20260821-current.yml
+          git add -- data/seed.json
+          git commit -m 'Sync confirmed TI2026 Aug 21 updates [skip ci]'
+          git push origin main
