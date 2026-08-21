@@ -988,15 +988,15 @@
       "teams": [
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team VISION",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast+liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-ubsf2",
@@ -1254,15 +1254,15 @@
       "teams": [
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team VISION",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast+liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0821-ubsf2",
@@ -1443,7 +1443,7 @@
     {
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
-      "detail": "主赛事 Day 2：10:00 Iron Wing 1:2 BoomBoys 已结束；14:15 Team Liquid 2:1 Team Falcons 已结束；18:20 Team Spirit vs TEAM VISION；21:30 Team Yandex vs Nigma Galaxy。",
+      "detail": "主赛事 Day 2：10:00 Iron Wing 1:2 BoomBoys 已结束；14:15 Team Liquid 2:1 Team Falcons 已结束；18:20 Team Spirit 0:2 TEAM VISION；21:30 Team Yandex vs Nigma Galaxy。",
       "note": "Iron Wing 1:2 BoomBoys、Team Liquid 2:1 Team Falcons 均为 BLAST 已确认最终赛果；21:30 为 BLAST 最新发布时间。Team Spirit vs TEAM VISION 当前临时比分不写死，继续由实时数据源更新。"
     },
     {
