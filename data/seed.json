@@ -1007,15 +1007,15 @@
       "teams": [
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 2
         },
         {
           "name": "Nigma Galaxy",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-lbr2-2",
@@ -1273,15 +1273,15 @@
       "teams": [
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 2
         },
         {
           "name": "Nigma Galaxy",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0822-lbr2-2",
@@ -1443,8 +1443,8 @@
     {
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
-      "detail": "主赛事 Day 2：10:00 Iron Wing 1:2 BoomBoys 已结束；14:15 Team Liquid 2:1 Team Falcons 已结束；18:20 Team Spirit 0:2 TEAM VISION；21:30 Team Yandex vs Nigma Galaxy。",
-      "note": "Iron Wing 1:2 BoomBoys、Team Liquid 2:1 Team Falcons 均为 BLAST 已确认最终赛果；21:30 为 BLAST 最新发布时间。Team Spirit vs TEAM VISION 当前临时比分不写死，继续由实时数据源更新。"
+      "detail": "主赛事 Day 2 已全部结束：10:00 Iron Wing 1:2 BoomBoys；14:15 Team Liquid 2:1 Team Falcons；18:20 Team Spirit 0:2 TEAM VISION；21:30 Team Yandex 2:1 Nigma Galaxy。",
+      "note": "以上四场均为 BLAST 已明确发布的最终赛果；8 月 22 日继续只同步可靠数据源明确发布的对阵与时间，不根据晋级关系自行推算后续 TBD。"
     },
     {
       "date": "2026-08-22",
