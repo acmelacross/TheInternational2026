@@ -1,0 +1,65 @@
+name: Sync TI2026 result temp
+on:
+  push:
+    paths:
+      - '.github/workflows/sync-ti-result-temp.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch confirmed result
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          d=json.loads(p.read_text())
+          target_ids={'seed-me-lbr1-1','seed-main-0821-lbr1-1'}
+          changed=[]
+          for m in d.get('matches',[]):
+              if m.get('id') not in target_ids:
+                  continue
+              teams=m.get('teams',[])
+              assert len(teams)>=2, m
+              assert teams[0].get('name')=='Iron Wing', m
+              assert teams[1].get('name')=='BoomBoys', m
+              teams[0]['score']=1
+              teams[1]['score']=2
+              m['status']='finished'
+              m['source']='blast-confirmed-result'
+              changed.append(m['id'])
+          assert set(changed)==target_ids, (changed,target_ids)
+          for item in d.get('timeline',[]):
+              if item.get('date')=='2026-08-21':
+                  item['detail']='主赛事 Day 2：10:00 Iron Wing 1:2 BoomBoys 已结束；14:15 Team Liquid vs Team Falcons；16:00 Team Spirit vs TEAM VISION；19:00 Team Yandex vs Nigma Galaxy。'
+                  item['note']='Iron Wing 1:2 BoomBoys 为 BLAST 已确认最终赛果；其余进行中/未开始场次继续由可靠数据源更新，不根据晋级关系自行推算后续对阵。'
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          print('patched',sorted(changed))
+          PY
+      - name: Validate
+        shell: bash
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if git diff --name-only | grep -q '^public/assets/teams-normal/'; then
+            echo 'ERROR: teams-normal changed' >&2
+            exit 1
+          fi
+      - name: Commit result and clean temp workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/sync-ti-result-temp.yml
+          git add data/seed.json
+          git commit -m 'Sync confirmed TI2026 Aug 21 result'
+          git push
