@@ -962,7 +962,7 @@
     },
     {
       "id": "seed-me-lbr1-2",
-      "startsAt": "2026-08-21T13:30:00+08:00",
+      "startsAt": "2026-08-21T14:15:00+08:00",
       "stage": "主赛事 · 败者组第1轮 2",
       "stream": null,
       "bestOf": 3,
@@ -977,7 +977,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "published-schedule"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-ubsf1",
@@ -1048,12 +1048,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "BoomBoys",
           "score": null
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-ubf",
@@ -1228,7 +1228,7 @@
     },
     {
       "id": "seed-main-0821-lbr1-2",
-      "startsAt": "2026-08-21T13:30:00+08:00",
+      "startsAt": "2026-08-21T14:15:00+08:00",
       "stage": "主赛事 · 败者组第1轮 2",
       "stream": null,
       "bestOf": 3,
@@ -1243,7 +1243,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "blast-published"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0821-ubsf1",
@@ -1314,12 +1314,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "BoomBoys",
           "score": null
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0822-ubf",
@@ -1444,13 +1444,13 @@
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
       "detail": "主赛事 Day 2 已明确四场对阵：10:00 Iron Wing vs BoomBoys、13:30 Team Liquid vs Team Falcons、16:00 Team Spirit vs TEAM VISION、19:00 Team Yandex vs Nigma Galaxy。",
-      "note": "10:00 Iron Wing vs BoomBoys；13:30 Team Liquid vs Team Falcons；16:00 Team Spirit vs TEAM VISION；19:00 Team Yandex vs Nigma Galaxy。其余后续对阵等待可靠数据源正式发布。"
+      "note": "10:00 Iron Wing vs BoomBoys；14:15 Team Liquid vs Team Falcons；16:00 Team Spirit vs TEAM VISION；19:00 Team Yandex vs Nigma Galaxy。其余后续对阵等待可靠数据源正式发布。"
     },
     {
       "date": "2026-08-22",
       "title": "主赛事 Day 3",
       "detail": "淘汰赛后段",
-      "note": "主赛事 Day 3：10:00、13:00 败者组第2轮；16:00 胜者组决赛；19:00 败者组第3轮。具体 TBD 对阵等待可靠数据源发布。"
+      "note": "主赛事 Day 3：10:00、13:00 败者组第2轮（已确认包含 BoomBoys）；16:00 胜者组决赛；19:00 败者组第3轮。具体 TBD 对阵等待可靠数据源发布。"
     },
     {
       "date": "2026-08-23",
