@@ -4,6 +4,7 @@ import json, urllib.request, sys
 
 ROOT=Path('.')
 URL='https://ti.xgoat.top/api/schedule/wiki?year=2026'
+# Temporary verification script: only commit a result when XGoat/Liquipedia marks the series finished.
 req=urllib.request.Request(URL,headers={'User-Agent':'TI2026-Viewing-Guide/automation','Accept':'application/json'})
 with urllib.request.urlopen(req,timeout=25) as r:
     data=json.load(r)
@@ -52,7 +53,6 @@ if not changed:
     print('NO_SEED_TARGET')
     sys.exit(13)
 
-# Update timeline text only if it contains the matchup without final score.
 for item in seed.get('timeline',[]):
     if str(item.get('date',''))=='2026-08-21':
         note=str(item.get('note',''))
