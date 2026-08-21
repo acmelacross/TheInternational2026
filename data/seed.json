@@ -1025,7 +1025,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         },
         {
@@ -1033,8 +1033,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast+liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-lbr2-1",
@@ -1063,7 +1063,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team VISION",
           "score": null
         },
         {
@@ -1072,7 +1072,7 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-me-lbr3",
@@ -1291,7 +1291,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         },
         {
@@ -1299,8 +1299,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast+liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0822-lbr2-1",
@@ -1329,7 +1329,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team VISION",
           "score": null
         },
         {
@@ -1338,7 +1338,7 @@
         }
       ],
       "status": "tbd",
-      "source": "blast"
+      "source": "liquipedia-mediawiki-published"
     },
     {
       "id": "seed-main-0822-lbr3",
@@ -1449,8 +1449,8 @@
     {
       "date": "2026-08-22",
       "title": "主赛事 Day 3",
-      "detail": "淘汰赛后段",
-      "note": "主赛事 Day 3：10:00 败者组第2轮已明确包含 Team Liquid；13:00 败者组第2轮已明确包含 BoomBoys；16:00 胜者组决赛；19:00 败者组第3轮。其余 TBD 对阵等待可靠数据源明确发布，不根据晋级关系自行推算。"
+      "detail": "主赛事 Day 3：10:00 Team Spirit vs Team Liquid；13:00 败者组第2轮已明确包含 BoomBoys、另一方 TBD；16:00 胜者组决赛已明确包含 TEAM VISION、另一方 TBD；19:00 败者组第3轮双方仍 TBD。",
+      "note": "以上仅同步可靠数据源已经明确发布的对阵与席位；其余 TBD 等待后续发布，不根据晋级关系自行推算。"
     },
     {
       "date": "2026-08-23",
