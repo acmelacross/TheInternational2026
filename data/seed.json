@@ -950,15 +950,15 @@
       "teams": [
         {
           "name": "Iron Wing",
-          "score": null
+          "score": 1
         },
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast+liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-lbr1-2",
@@ -1216,15 +1216,15 @@
       "teams": [
         {
           "name": "Iron Wing",
-          "score": null
+          "score": 1
         },
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast+liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0821-lbr1-2",
@@ -1443,8 +1443,8 @@
     {
       "date": "2026-08-21",
       "title": "主赛事 Day 2",
-      "detail": "主赛事 Day 2 已明确四场对阵：10:00 Iron Wing vs BoomBoys、14:15 Team Liquid vs Team Falcons、16:00 Team Spirit vs TEAM VISION、19:00 Team Yandex vs Nigma Galaxy。",
-      "note": "10:00 Iron Wing vs BoomBoys；14:15 Team Liquid vs Team Falcons；16:00 Team Spirit vs TEAM VISION；19:00 Team Yandex vs Nigma Galaxy。其余后续对阵等待可靠数据源正式发布。"
+      "detail": "主赛事 Day 2：10:00 Iron Wing 1:2 BoomBoys 已结束；14:15 Team Liquid vs Team Falcons；16:00 Team Spirit vs TEAM VISION；19:00 Team Yandex vs Nigma Galaxy。",
+      "note": "Iron Wing 1:2 BoomBoys 为 BLAST 已确认最终赛果；其余进行中/未开始场次继续由可靠数据源更新，不根据晋级关系自行推算后续对阵。"
     },
     {
       "date": "2026-08-22",
