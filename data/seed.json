@@ -1044,7 +1044,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Nigma Galaxy",
           "score": null
         },
         {
@@ -1052,8 +1052,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "blast-confirmed-schedule"
     },
     {
       "id": "seed-me-ubf",
@@ -1067,12 +1067,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Yandex",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "blast-confirmed-schedule"
     },
     {
       "id": "seed-me-lbr3",
@@ -1310,7 +1310,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Nigma Galaxy",
           "score": null
         },
         {
@@ -1318,8 +1318,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "blast-confirmed-schedule"
     },
     {
       "id": "seed-main-0822-ubf",
@@ -1333,12 +1333,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Yandex",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "liquipedia-mediawiki-published"
+      "status": "upcoming",
+      "source": "blast-confirmed-schedule"
     },
     {
       "id": "seed-main-0822-lbr3",
