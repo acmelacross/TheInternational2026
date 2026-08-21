@@ -8,22 +8,30 @@ jobs:
   check:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Fetch XGoat schedule JSON
         run: |
           python3 - <<'PY'
-          import json, urllib.request
+          import json, urllib.request, pathlib
           url='https://ti.xgoat.top/api/schedule/wiki?year=2026'
           req=urllib.request.Request(url,headers={'User-Agent':'TI2026-Viewing-Guide/automation','Accept':'application/json'})
           with urllib.request.urlopen(req,timeout=25) as r:
               data=json.load(r)
-          print('META',json.dumps({k:data.get(k) for k in ['source','fetchedAt','revisionAt','revisionId','stale','coverage']},ensure_ascii=False))
+          out={'meta':{k:data.get(k) for k in ['source','fetchedAt','revisionAt','revisionId','stale','coverage']},'matches':[]}
           for stage in data.get('stages',[]):
               for rnd in stage.get('rounds',[]):
                   for m in rnd.get('matches',[]):
                       at=str(m.get('scheduledAt',''))
                       if at.startswith('2026-08-21') or at.startswith('2026-08-22'):
-                          print('MATCH',json.dumps({'stage':stage.get('label'),'round':rnd.get('title'),'id':m.get('id'),'scheduledAt':at,'bestOf':m.get('bestOf'),'status':m.get('status'),'opponents':m.get('opponents')},ensure_ascii=False))
+                          out['matches'].append({'stage':stage.get('label'),'round':rnd.get('title'),'id':m.get('id'),'scheduledAt':at,'bestOf':m.get('bestOf'),'status':m.get('status'),'opponents':m.get('opponents')})
+          pathlib.Path('tmp-ti2026-latest.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
           PY
+      - name: Publish check snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tmp-ti2026-latest.json
+          git commit -m "Store temporary TI2026 latest snapshot" || exit 0
+          git push
