@@ -1,0 +1,40 @@
+name: Apply TI Aug 22 schedule sync
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-ti-aug22-sync.yml'
+      - 'scripts/apply_ti_aug22_sync.py'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply confirmed schedule update
+        run: python3 scripts/apply_ti_aug22_sync.py
+      - name: Validate JSON and JavaScript
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+      - name: Protect manually maintained team logos
+        run: |
+          if ! git diff --quiet -- public/assets/teams-normal; then
+            echo 'Refusing to modify public/assets/teams-normal' >&2
+            git diff -- public/assets/teams-normal
+            exit 1
+          fi
+      - name: Commit verified sync and clean temporary inspection files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f ti-current-auto.txt scripts/inspect_ti_schedule_now.py scripts/apply_ti_aug22_sync.py
+          rm -f .github/workflows/inspect-ti-schedule-now.yml .github/workflows/apply-ti-aug22-sync.yml
+          git add -A data/seed.json ti-current-auto.txt scripts .github/workflows
+          git commit -m "Sync confirmed TI2026 Aug 22 schedule"
+          git push
