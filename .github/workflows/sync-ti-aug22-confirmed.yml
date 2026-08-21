@@ -1,0 +1,66 @@
+name: Sync TI Aug22 confirmed schedule
+on:
+  push:
+    paths:
+      - '.github/workflows/sync-ti-aug22-confirmed.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update confirmed Aug 22 pairings
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          data=json.loads(p.read_text())
+          changed=[]
+          for m in data.get('matches',[]):
+              dt=str(m.get('startsAt',''))
+              stage=str(m.get('stage',''))
+              if dt.startswith('2026-08-22T13:00:00+08:00') and '败者组第2轮' in stage:
+                  m['teams']=[{'name':'Nigma Galaxy','score':None},{'name':'BoomBoys','score':None}]
+                  m['status']='upcoming'
+                  m['source']='blast-confirmed-schedule'
+                  changed.append((m.get('id'), 'Nigma Galaxy vs BoomBoys'))
+              elif dt.startswith('2026-08-22T16:00:00+08:00') and '胜者组决赛' in stage:
+                  m['teams']=[{'name':'Team VISION','score':None},{'name':'Team Yandex','score':None}]
+                  m['status']='upcoming'
+                  m['source']='blast-confirmed-schedule'
+                  changed.append((m.get('id'), 'Team VISION vs Team Yandex'))
+          if not changed:
+              raise SystemExit('No matching Aug 22 slots found; refusing to guess')
+          if not any(x[1]=='Nigma Galaxy vs BoomBoys' for x in changed):
+              raise SystemExit('Missing 13:00 LB Round 2 target')
+          if not any(x[1]=='Team VISION vs Team Yandex' for x in changed):
+              raise SystemExit('Missing 16:00 UB Final target')
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+          print('UPDATED', changed)
+          PY
+      - name: Validate
+        shell: bash
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if git diff --name-only | grep -q '^public/assets/teams-normal/'; then
+            echo 'Refusing to modify hand-maintained team logos' >&2
+            exit 1
+          fi
+      - name: Commit verified update and clean workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/sync-ti-aug22-confirmed.yml
+          git add data/seed.json
+          git commit -m 'Sync confirmed TI2026 Aug 22 pairings'
+          git push
