@@ -1,0 +1,13 @@
+name: Inspect TI schedule now
+on:
+  push:
+    paths:
+      - '.github/workflows/inspect-ti-schedule-now.yml'
+      - 'scripts/inspect_ti_schedule_now.py'
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch current structured schedule
+        run: python3 scripts/inspect_ti_schedule_now.py
