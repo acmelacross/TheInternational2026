@@ -1,0 +1,76 @@
+name: Sync TI Aug23 confirmed slots
+on:
+  push:
+    paths:
+      - '.github/workflows/sync-ti-aug23-slots.yml'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch only published Aug23 bracket slots
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/seed.json')
+          data=json.loads(p.read_text())
+          changed=0
+          touched=[]
+          for m in data.get('matches',[]):
+              start=str(m.get('startsAt',''))
+              stage=str(m.get('stage',''))
+              if not start.startswith('2026-08-23'):
+                  continue
+              teams=m.get('teams') or []
+              if len(teams)<2:
+                  continue
+              if '败者组决赛' in stage:
+                  # Liquipedia MediaWiki revision 2419149 explicitly publishes Team Yandex in this slot.
+                  names=[str(t.get('name','')) for t in teams]
+                  if 'Team Yandex' not in names:
+                      idx=0 if names[0].startswith('待定') or names[0] in ('TBD','TBA','') else 1
+                      teams[idx]['name']='Team Yandex'
+                      teams[idx]['score']=None
+                      m['status']='upcoming'
+                      m['source']='liquipedia-confirmed-schedule'
+                      changed+=1; touched.append((m.get('id'),stage,[t.get('name') for t in teams]))
+              elif '总决赛' in stage:
+                  # Liquipedia MediaWiki revision 2419149 explicitly publishes TEAM VISION in this slot.
+                  names=[str(t.get('name','')) for t in teams]
+                  if 'TEAM VISION' not in names and 'Team VISION' not in names:
+                      idx=0 if names[0].startswith('待定') or names[0] in ('TBD','TBA','') else 1
+                      teams[idx]['name']='TEAM VISION'
+                      teams[idx]['score']=None
+                      m['status']='upcoming'
+                      m['source']='liquipedia-confirmed-schedule'
+                      changed+=1; touched.append((m.get('id'),stage,[t.get('name') for t in teams]))
+          if not changed:
+              raise SystemExit('No seed entries needed updating; refusing empty sync commit')
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+          print('UPDATED',changed)
+          for x in touched: print(x)
+          PY
+      - name: Validate JSON JS tests and logo protection
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if git diff --name-only | grep -q '^public/assets/teams-normal/'; then
+            echo 'ERROR: team logos changed'; exit 1
+          fi
+      - name: Commit verified sync and clean temporary files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/sync-ti-aug23-slots.yml
+          if [ -f ti-live-inspect.txt ]; then git rm ti-live-inspect.txt; fi
+          git add data/seed.json
+          git commit -m 'Sync confirmed TI2026 Aug 23 bracket slots'
+          git push
