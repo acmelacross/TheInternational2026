@@ -2,6 +2,7 @@
 from pathlib import Path
 import json
 
+# Triggered sync for the explicitly published Aug 22 lower-bracket semifinal pairing.
 p = Path('data/seed.json')
 data = json.loads(p.read_text(encoding='utf-8'))
 changed = 0
