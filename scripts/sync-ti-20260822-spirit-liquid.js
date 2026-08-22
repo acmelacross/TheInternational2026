@@ -26,3 +26,4 @@ for (const x of j.timeline||[]) {
 }
 fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n');
 console.log('updated matches',n);
+// trigger sync workflow after workflow file exists
