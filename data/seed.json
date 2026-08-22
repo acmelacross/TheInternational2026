@@ -988,7 +988,7 @@
       "teams": [
         {
           "name": "Team Spirit",
-          "score": 0
+          "score": 1
         },
         {
           "name": "Team VISION",
@@ -996,11 +996,11 @@
         }
       ],
       "status": "finished",
-      "source": "blast-confirmed-result"
+      "source": "liquipedia-confirmed-result"
     },
     {
       "id": "seed-me-ubsf2",
-      "startsAt": "2026-08-21T21:30:00+08:00",
+      "startsAt": "2026-08-21T22:10:00+08:00",
       "stage": "主赛事 · 胜者组半决赛 2",
       "stream": null,
       "bestOf": 3,
