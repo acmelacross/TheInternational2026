@@ -1,0 +1,32 @@
+name: Sync TI2026 Aug 22 Spirit Liquid result
+on:
+  push:
+    paths:
+      - 'scripts/sync-ti-20260822-spirit-liquid.js'
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply result
+        run: node scripts/sync-ti-20260822-spirit-liquid.js
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if git diff --name-only | grep -q '^public/assets/teams-normal/'; then echo 'Logo directory changed'; exit 1; fi
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm scripts/sync-ti-20260822-spirit-liquid.js .github/workflows/sync-ti-20260822-spirit-liquid.yml
+          git add data/seed.json
+          git commit -m 'Sync confirmed TI2026 Spirit vs Liquid result'
+          git push
