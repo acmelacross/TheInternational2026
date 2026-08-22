@@ -1059,26 +1059,26 @@
     },
     {
       "id": "seed-me-ubf",
-      "startsAt": "2026-08-22T16:00:00+08:00",
+      "startsAt": "2026-08-22T16:45:00+08:00",
       "stage": "主赛事 · 胜者组决赛",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
           "name": "Team VISION",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-schedule"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-lbr3",
-      "startsAt": "2026-08-22T19:00:00+08:00",
+      "startsAt": "2026-08-22T21:00:00+08:00",
       "stage": "主赛事 · 败者组第3轮",
       "stream": null,
       "bestOf": 3,
@@ -1093,7 +1093,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "escore-confirmed-schedule"
+      "source": "blast-confirmed-schedule"
     },
     {
       "id": "seed-me-lbf",
@@ -1327,26 +1327,26 @@
     },
     {
       "id": "seed-main-0822-ubf",
-      "startsAt": "2026-08-22T16:00:00+08:00",
+      "startsAt": "2026-08-22T16:45:00+08:00",
       "stage": "主赛事 · 胜者组决赛",
       "stream": null,
       "bestOf": 3,
       "teams": [
         {
           "name": "Team VISION",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Yandex",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-schedule"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0822-lbr3",
-      "startsAt": "2026-08-22T19:00:00+08:00",
+      "startsAt": "2026-08-22T21:00:00+08:00",
       "stage": "主赛事 · 败者组第3轮",
       "stream": null,
       "bestOf": 3,
@@ -1361,7 +1361,7 @@
         }
       ],
       "status": "upcoming",
-      "source": "escore-confirmed-schedule"
+      "source": "blast-confirmed-schedule"
     },
     {
       "id": "seed-main-0823-lbf",
@@ -1453,8 +1453,8 @@
     {
       "date": "2026-08-22",
       "title": "主赛事 Day 3",
-      "detail": "主赛事 Day 3：10:10 Team Spirit 2:1 Team Liquid（败者组第2轮，已结束）；13:00 Nigma Galaxy 1:2 BoomBoys（败者组第2轮，已结束）；16:00 TEAM VISION vs Team Yandex（胜者组决赛）；19:00 BoomBoys vs Team Spirit（败者组第3轮，BO3，已由公开比赛页明确发布）。",
-      "note": "仅同步公开数据源明确发布的对阵、时间和赛果；胜者组决赛及后续场次未确认的比分/对阵继续等待可靠来源发布，不自行推算。"
+      "detail": "主赛事 Day 3：10:10 Team Spirit 2:1 Team Liquid（败者组第2轮，已结束）；13:00 Nigma Galaxy 1:2 BoomBoys（败者组第2轮，已结束）；16:45 TEAM VISION 2:1 Team Yandex（胜者组决赛，已结束）；21:00 BoomBoys vs Team Spirit（败者组第3轮，BO3，当前进行中比分不写死）。",
+      "note": "仅同步公开数据源明确发布的对阵、时间和最终赛果；进行中比分不固化，后续场次未确认的信息继续等待可靠来源发布，不自行推算。"
     },
     {
       "date": "2026-08-23",
