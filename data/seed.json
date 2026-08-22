@@ -1045,15 +1045,17 @@
       "teams": [
         {
           "name": "Nigma Galaxy",
-          "score": null
+          "score": 1,
+          "winner": false
         },
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 2,
+          "winner": true
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-schedule"
+      "status": "finished",
+      "source": "liquipedia-confirmed-result"
     },
     {
       "id": "seed-me-ubf",
@@ -1311,15 +1313,17 @@
       "teams": [
         {
           "name": "Nigma Galaxy",
-          "score": null
+          "score": 1,
+          "winner": false
         },
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 2,
+          "winner": true
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-schedule"
+      "status": "finished",
+      "source": "liquipedia-confirmed-result"
     },
     {
       "id": "seed-main-0822-ubf",
