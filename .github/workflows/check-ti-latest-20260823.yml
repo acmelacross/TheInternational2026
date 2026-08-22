@@ -5,10 +5,18 @@ on:
       - 'scripts/check_ti_latest_20260823.py'
       - '.github/workflows/check-ti-latest-20260823.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/check_ti_latest_20260823.py
+      - name: Capture latest schedule
+        run: python3 scripts/check_ti_latest_20260823.py > ti-latest-check.txt
+      - name: Commit snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ti-latest-check.txt
+          git commit -m "Capture TI latest check 20260823" || exit 0
+          git push
