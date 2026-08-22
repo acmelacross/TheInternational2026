@@ -1,0 +1,38 @@
+name: Fix TI Aug21 confirmed data
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-ti-aug21-confirmed.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply corrections
+        run: python3 scripts/fix_ti_aug21_confirmed.py
+      - name: Validate
+        run: |
+          python3 -m json.tool data/seed.json >/dev/null
+          node --check server.js
+          node --check public/app.js
+          node --check public/predictions.js
+          node --check public/ai-analysis.js
+          npm test
+          git diff --check
+          if ! git diff --quiet -- public/assets/teams-normal; then
+            echo 'team logos changed unexpectedly' >&2
+            exit 1
+          fi
+      - name: Commit and cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm scripts/fix_ti_aug21_confirmed.py .github/workflows/fix-ti-aug21-confirmed.yml
+          git add data/seed.json
+          git commit -m 'Correct confirmed TI2026 Aug 21 result and time'
+          git push
