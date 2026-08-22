@@ -1084,16 +1084,16 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "BoomBoys",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "escore-confirmed-schedule"
     },
     {
       "id": "seed-me-lbf",
@@ -1352,16 +1352,16 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "BoomBoys",
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "escore-confirmed-schedule"
     },
     {
       "id": "seed-main-0823-lbf",
@@ -1453,8 +1453,8 @@
     {
       "date": "2026-08-22",
       "title": "主赛事 Day 3",
-      "detail": "10:10 Team Spirit 2:1 Team Liquid（败者组第2轮，已结束）；主赛事 Day 3：13:00 败者组第2轮已明确包含 BoomBoys、另一方 TBD；16:00 胜者组决赛已明确包含 TEAM VISION、另一方 TBD；19:00 败者组第3轮双方仍 TBD。",
-      "note": "以上仅同步可靠数据源已经明确发布的对阵与席位；其余 TBD 等待后续发布，不根据晋级关系自行推算。"
+      "detail": "主赛事 Day 3：10:10 Team Spirit 2:1 Team Liquid（败者组第2轮，已结束）；13:00 Nigma Galaxy 1:2 BoomBoys（败者组第2轮，已结束）；16:00 TEAM VISION vs Team Yandex（胜者组决赛）；19:00 BoomBoys vs Team Spirit（败者组第3轮，BO3，已由公开比赛页明确发布）。",
+      "note": "仅同步公开数据源明确发布的对阵、时间和赛果；胜者组决赛及后续场次未确认的比分/对阵继续等待可靠来源发布，不自行推算。"
     },
     {
       "date": "2026-08-23",
