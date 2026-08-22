@@ -1,0 +1,14 @@
+name: Check TI latest 20260823
+on:
+  push:
+    paths:
+      - 'scripts/check_ti_latest_20260823.py'
+      - '.github/workflows/check-ti-latest-20260823.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/check_ti_latest_20260823.py
