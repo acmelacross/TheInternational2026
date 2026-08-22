@@ -1026,15 +1026,15 @@
       "teams": [
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Liquid",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-me-lbr2-1",
@@ -1292,15 +1292,15 @@
       "teams": [
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 2
         },
         {
           "name": "Team Liquid",
-          "score": null
+          "score": 1
         }
       ],
-      "status": "upcoming",
-      "source": "liquipedia-mediawiki-published"
+      "status": "finished",
+      "source": "blast-confirmed-result"
     },
     {
       "id": "seed-main-0822-lbr2-1",
@@ -1449,7 +1449,7 @@
     {
       "date": "2026-08-22",
       "title": "主赛事 Day 3",
-      "detail": "主赛事 Day 3：10:10 Team Spirit vs Team Liquid；13:00 败者组第2轮已明确包含 BoomBoys、另一方 TBD；16:00 胜者组决赛已明确包含 TEAM VISION、另一方 TBD；19:00 败者组第3轮双方仍 TBD。",
+      "detail": "10:10 Team Spirit 2:1 Team Liquid（败者组第2轮，已结束）；主赛事 Day 3：13:00 败者组第2轮已明确包含 BoomBoys、另一方 TBD；16:00 胜者组决赛已明确包含 TEAM VISION、另一方 TBD；19:00 败者组第3轮双方仍 TBD。",
       "note": "以上仅同步可靠数据源已经明确发布的对阵与席位；其余 TBD 等待后续发布，不根据晋级关系自行推算。"
     },
     {
