@@ -1,0 +1,24 @@
+name: Temporary TI latest check
+on: [push]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch current structured schedule
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          u='https://ti.xgoat.top/api/schedule/wiki?year=2026'
+          req=urllib.request.Request(u,headers={'User-Agent':'TI2026Guide schedule verifier','Accept':'application/json'})
+          with urllib.request.urlopen(req,timeout=30) as r: d=json.load(r)
+          print('META',json.dumps({k:d.get(k) for k in ['source','fetchedAt','revisionAt','revisionId','stale','coverage']},ensure_ascii=False))
+          for st in d.get('stages',[]):
+            for rd in st.get('rounds',[]):
+              for m in rd.get('matches',[]):
+                at=str(m.get('scheduledAt',''))
+                if at.startswith('2026-08-22') or at.startswith('2026-08-23'):
+                  print('MATCH',json.dumps({'stage':st.get('label'),'round':rd.get('title'),'id':m.get('id'),'scheduledAt':at,'status':m.get('status'),'bestOf':m.get('bestOf'),'opponents':m.get('opponents')},ensure_ascii=False))
+          PY
