@@ -1085,15 +1085,15 @@
       "teams": [
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-schedule"
+      "status": "finished",
+      "source": "confirmed-public-result"
     },
     {
       "id": "seed-me-lbf",
@@ -1107,12 +1107,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         }
       ],
       "status": "upcoming",
-      "source": "liquipedia-confirmed-schedule"
+      "source": "confirmed-public-schedule"
     },
     {
       "id": "seed-me-gf",
@@ -1353,15 +1353,15 @@
       "teams": [
         {
           "name": "BoomBoys",
-          "score": null
+          "score": 0
         },
         {
           "name": "Team Spirit",
-          "score": null
+          "score": 2
         }
       ],
-      "status": "upcoming",
-      "source": "blast-confirmed-schedule"
+      "status": "finished",
+      "source": "confirmed-public-result"
     },
     {
       "id": "seed-main-0823-lbf",
@@ -1375,12 +1375,12 @@
           "score": null
         },
         {
-          "name": "待定",
+          "name": "Team Spirit",
           "score": null
         }
       ],
       "status": "upcoming",
-      "source": "liquipedia-confirmed-schedule"
+      "source": "confirmed-public-schedule"
     },
     {
       "id": "seed-main-0823-gf",
@@ -1453,14 +1453,14 @@
     {
       "date": "2026-08-22",
       "title": "主赛事 Day 3",
-      "detail": "主赛事 Day 3：10:10 Team Spirit 2:1 Team Liquid（败者组第2轮，已结束）；13:00 Nigma Galaxy 1:2 BoomBoys（败者组第2轮，已结束）；16:45 TEAM VISION 2:1 Team Yandex（胜者组决赛，已结束）；21:00 BoomBoys vs Team Spirit（败者组第3轮，BO3，当前进行中比分不写死）。",
-      "note": "仅同步公开数据源明确发布的对阵、时间和最终赛果；进行中比分不固化，后续场次未确认的信息继续等待可靠来源发布，不自行推算。"
+      "detail": "主赛事 Day 3：10:10 Team Spirit 2:1 Team Liquid（败者组第2轮，已结束）；13:00 Nigma Galaxy 1:2 BoomBoys（败者组第2轮，已结束）；16:45 TEAM VISION 2:1 Team Yandex（胜者组决赛，已结束）；21:00 BoomBoys 0:2 Team Spirit（败者组第3轮，已结束）。",
+      "note": "仅同步公开数据源明确发布的对阵、时间和最终赛果；Team Spirit 已晋级 8 月 23 日败者组决赛。"
     },
     {
       "date": "2026-08-23",
       "title": "决赛日",
-      "detail": "败者组决赛 + 总决赛 BO5",
-      "note": "主赛事 Day 4：10:00 败者组决赛；13:00 BO5 总决赛。具体对阵等待可靠数据源发布。"
+      "detail": "决赛日：10:00 Team Yandex vs Team Spirit（败者组决赛，BO3）；13:00 TEAM VISION vs 待定（总决赛，BO5）。总决赛另一方继续等待可靠数据源在败者组决赛结束后正式发布。",
+      "note": "败者组决赛双方已由公开赛果/赛程明确；总决赛另一方未提前推算。"
     }
   ],
   "chinaTeams": [
