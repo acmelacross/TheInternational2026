@@ -1103,7 +1103,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Yandex",
           "score": null
         },
         {
@@ -1111,8 +1111,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-confirmed-schedule"
     },
     {
       "id": "seed-me-gf",
@@ -1122,7 +1122,7 @@
       "bestOf": 5,
       "teams": [
         {
-          "name": "待定",
+          "name": "TEAM VISION",
           "score": null
         },
         {
@@ -1130,8 +1130,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-confirmed-schedule"
     },
     {
       "id": "seed-main-0820-ubqf1",
@@ -1371,7 +1371,7 @@
       "bestOf": 3,
       "teams": [
         {
-          "name": "待定",
+          "name": "Team Yandex",
           "score": null
         },
         {
@@ -1379,8 +1379,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-confirmed-schedule"
     },
     {
       "id": "seed-main-0823-gf",
@@ -1390,7 +1390,7 @@
       "bestOf": 5,
       "teams": [
         {
-          "name": "待定",
+          "name": "TEAM VISION",
           "score": null
         },
         {
@@ -1398,8 +1398,8 @@
           "score": null
         }
       ],
-      "status": "tbd",
-      "source": "blast"
+      "status": "upcoming",
+      "source": "liquipedia-confirmed-schedule"
     }
   ],
   "timeline": [
